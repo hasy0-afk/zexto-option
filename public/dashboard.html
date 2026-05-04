@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zexto Option — Admin Panel</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0a0e18;color:#e8ecf4;min-height:100vh;overflow:hidden}
+  .layout{display:flex;width:100vw;height:100vh}
+
+  /* SIDEBAR */
+  .sidebar{width:240px;background:#0b0e18;border-right:1px solid #1c2238;display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-logo{display:flex;align-items:center;gap:10px;padding:18px 20px;border-bottom:1px solid #1c2238}
+  .logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#00ff9d,#00cc7d);display:flex;align-items:center;justify-content:center}
+  .logo-name{font-size:15px;font-weight:700;letter-spacing:-0.3px}
+  .logo-sub{font-size:10px;color:#7a85a0;margin-top:1px}
+  .nav{flex:1;padding:12px 10px;overflow-y:auto}
+  .nav-section{font-size:10px;color:#4a5570;text-transform:uppercase;letter-spacing:1px;font-weight:700;padding:12px 10px 6px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;color:#7a85a0;font-size:13px;font-weight:500;transition:all 0.15s;border:1px solid transparent;margin-bottom:2px}
+  .nav-item:hover{background:#1a2035;color:#e8ecf4}
+  .nav-item.active{background:#00ff9d15;color:#00ff9d;border-color:#00ff9d33}
+  .nav-icon{font-size:16px;width:20px;text-align:center}
+  .nav-badge{margin-left:auto;font-size:10px;padding:2px 7px;background:#ef4444;color:#fff;border-radius:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+  .sidebar-foot{padding:14px 18px;border-top:1px solid #1c2238;display:flex;align-items:center;gap:10px;font-size:11px;color:#7a85a0}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:#00ff9d;animation:pulse 1.5s infinite}
+  .status-dot.offline{background:#ef4444}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  /* MAIN */
+  .main{flex:1;overflow-y:auto;padding:24px 32px}
+  .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid #1c2238}
+  .page-title{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+  .page-subtitle{font-size:11px;color:#7a85a0;margin-top:2px}
+  .btn{padding:8px 16px;border-radius:7px;border:1px solid #1c2238;background:#111626;color:#e8ecf4;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+  .btn:hover{border-color:#00ff9d55}
+  .btn-primary{background:linear-gradient(135deg,#00ff9d,#00cc7d);color:#0a0e18;border:none}
+  .btn-danger{background:#ef444422;color:#ef4444;border-color:#ef444455}
+  .btn-danger:hover{background:#ef4444;color:#fff}
+  .btn-sm{padding:5px 10px;font-size:11px}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+  .stat{background:#111626;border:1px solid #1c2238;border-radius:10px;padding:14px 16px;transition:all 0.15s}
+  .stat:hover{border-color:#00ff9d44}
+  .stat-lbl{font-size:10px;color:#7a85a0;text-transform:uppercase;letter-spacing:0.5px;font-weight:700}
+  .stat-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:4px}
+  .stat-chg{font-size:10px;margin-top:3px;font-family:'JetBrains Mono',monospace;color:#7a85a0}
+
+  .searchbar{display:flex;gap:10px;margin-bottom:16px}
+  .search-input{flex:1;max-width:360px;background:#111626;border:1px solid #1c2238;border-radius:7px;padding:9px 12px;color:#e8ecf4;font-size:12px;outline:none;font-family:inherit}
+  .search-input:focus{border-color:#00ff9d66}
+
+  .table-wrap{background:#111626;border:1px solid #1c2238;border-radius:10px;overflow:hidden;overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;padding:12px 16px;font-size:10px;font-weight:700;color:#7a85a0;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #1c2238;background:#0b0e18;white-space:nowrap}
+  td{padding:12px 16px;border-bottom:1px solid #1a2035;font-size:13px;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#1a2035}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2a2f45,#1a2035);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#e8ecf4;flex-shrink:0}
+  .user-cell{display:flex;align-items:center;gap:10px}
+  .user-name{font-weight:600;color:#e8ecf4}
+  .user-email{font-size:11px;color:#7a85a0;font-family:'JetBrains Mono',monospace}
+  .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px}
+  .b-green{background:#00ff9d22;color:#00ff9d}
+  .b-red{background:#ef444422;color:#ef4444}
+  .b-yellow{background:#f59e0b22;color:#f59e0b}
+  .b-blue{background:#3b82f622;color:#60a5fa}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .c-green{color:#00ff9d}
+  .c-red{color:#ef4444}
+  .row-actions{display:flex;gap:4px;justify-content:flex-end}
+  .icon-btn{width:28px;height:28px;border-radius:5px;border:1px solid #1c2238;background:transparent;color:#7a85a0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+  .icon-btn:hover{background:#1a2035;color:#e8ecf4}
+
+  .empty{padding:60px 20px;text-align:center;color:#4a5570;font-size:13px}
+  .empty-icon{font-size:48px;margin-bottom:12px;opacity:0.5}
+  .loading{padding:40px;text-align:center;color:#7a85a0;font-size:12px}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+  .modal-overlay.active{display:flex}
+  .modal{background:#111626;border:1px solid #1c2238;border-radius:12px;width:640px;max-width:90vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #1c2238}
+  .modal-title{font-size:15px;font-weight:700}
+  .modal-close{background:none;border:none;color:#7a85a0;cursor:pointer;font-size:22px;padding:0 6px;line-height:1}
+  .modal-body{flex:1;overflow-y:auto;padding:20px}
+  .field{margin-bottom:14px}
+  .field-lbl{font-size:10px;color:#7a85a0;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:4px}
+  .field-val{font-size:13px;color:#e8ecf4;font-family:'JetBrains Mono',monospace}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .card{background:#111626;border:1px solid #1c2238;border-radius:10px;padding:16px;transition:all 0.15s}
+  .card:hover{border-color:#00ff9d44}
+
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:#0a0e18}
+  ::-webkit-scrollbar-thumb{background:#1c2238;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#2a2f45}
+
+  @media(max-width:768px){
+    .sidebar{width:60px}
+    .sidebar-logo>div:last-child,.nav-section,.nav-item>span:not(.nav-icon):not(.nav-badge),.sidebar-foot>span:last-child{display:none}
+    .nav-item{justify-content:center}
+    .main{padding:16px}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg" width="26" height="26">
+          <path d="M 18 22 L 58 22 L 22 54 L 58 54" stroke="#0a0e18" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="62" cy="18" r="4" fill="#0a0e18"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">Zexto Admin</div>
+        <div class="logo-sub">v1.0.0</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" data-page="dashboard" onclick="nav(this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+
+      <div class="nav-section">Management</div>
+      <div class="nav-item" data-page="users" onclick="nav(this)"><span class="nav-icon">👥</span><span>Users</span><span class="nav-badge" id="navUsers">0</span></div>
+      <div class="nav-item" data-page="pairs" onclick="nav(this)"><span class="nav-icon">💱</span><span>Pairs</span></div>
+      <div class="nav-item" data-page="trades" onclick="nav(this)"><span class="nav-icon">📈</span><span>All Trades</span></div>
+
+      <div class="nav-section">Finance</div>
+      <div class="nav-item" data-page="deposits" onclick="nav(this)"><span class="nav-icon">💰</span><span>Deposits</span></div>
+      <div class="nav-item" data-page="withdrawals" onclick="nav(this)"><span class="nav-icon">💸</span><span>Withdrawals</span></div>
+      <div class="nav-item" data-page="kyc" onclick="nav(this)"><span class="nav-icon">📋</span><span>KYC</span></div>
+      <div class="nav-item" data-page="deposit-promos" onclick="nav(this)"><span class="nav-icon">🎁</span><span>Deposit Promos</span></div>
+      <div class="nav-item" data-page="support" onclick="nav(this)"><span class="nav-icon">🎫</span><span>Support</span><span class="nav-badge" id="navSupport">0</span></div>
+
+      <div class="nav-section">Community</div>
+      <div class="nav-item" data-page="affiliates" onclick="nav(this)"><span class="nav-icon">🤝</span><span>Affiliates</span><span class="nav-badge" id="navAffiliates">0</span></div>
+      <div class="nav-item" data-page="ranking" onclick="nav(this)"><span class="nav-icon">🏅</span><span>Ranking</span></div>
+      <div class="nav-item" data-page="tournaments" onclick="nav(this)"><span class="nav-icon">🏆</span><span>Tournaments</span></div>
+      <div class="nav-item" data-page="signals" onclick="nav(this)"><span class="nav-icon">📡</span><span>Signals</span></div>
+    </nav>
+
+    <div class="sidebar-foot" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">API Online</span>
+      </div>
+      <button onclick="adminLogout()" style="width:100%;padding:7px 12px;border-radius:6px;border:1px solid #ef444444;background:#ef444415;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s">🔓 Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div id="pageContent"><div class="loading">Loading...</div></div>
+  </main>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">Details</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let currentPage = 'dashboard';
+let refreshIv = null;
+let usersSearch = '';
+
+// Get admin token from cookie
+function getAdminToken() {
+  const match = document.cookie.match(/admin_token=([^;]+)/);
+  return match ? match[1] : null;
+}
+
+// Check auth on load
+if (!getAdminToken()) {
+  window.location.href = '/admin-login';
+}
+
+// Logout function
+function adminLogout() {
+  document.cookie = 'admin_token=;path=/;max-age=0';
+  window.location.href = '/admin-login';
+}
+
+const getInitials = n => n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const fmtMoney = n => '$' + (Math.abs(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK = n => {n=Math.abs(n||0);if(n>=1000000)return '$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return '$'+(n/1000).toFixed(1)+'K';return '$'+n.toFixed(0);}
+const timeAgo = d => {const s=Math.floor((Date.now()-new Date(d).getTime())/1000);if(s<60)return s+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';};
+const fmtDate = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+async function api(path, opts={}){
+  try{
+    const token = getAdminToken();
+    const headers = {'Content-Type':'application/json'};
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const r = await fetch(API + path, {
+      method: opts.method || 'GET',
+      headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+    if (r.status === 401) {
+      adminLogout();
+      return null;
+    }
+    return await r.json();
+  }catch(e){ return null; }
+}
+
+function nav(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  currentPage = el.dataset.page;
+  loadPage(currentPage);
+}
+
+let _checkingStatus = false;
+async function checkStatus(){
+  if(_checkingStatus) return;
+  _checkingStatus = true;
+  try {
+    const d = await api('/api');
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    if(d && d.success){ dot.classList.remove('offline'); txt.textContent='API Online'; }
+    else{ dot.classList.add('offline'); txt.textContent='API Offline'; }
+  } catch(e){}
+  _checkingStatus = false;
+}
+
+let _updatingBadges = false;
+async function updateBadges(){
+  if(_updatingBadges) return;
+  _updatingBadges = true;
+  try {
+    const d = await api('/api/admin/stats');
+    if(d && d.success) document.getElementById('navUsers').textContent = d.stats.totalUsers;
+  } catch(e){}
+  // Affiliate badge
+  try {
+    const af = await api('/api/admin/affiliates/stats');
+    if(af && af.success) document.getElementById('navAffiliates').textContent = af.stats.totalPartners || 0;
+  } catch(e){}
+  // Support badge
+  try {
+    const st = await api('/api/admin/support/all?status=open&limit=1');
+    if(st && st.success) document.getElementById('navSupport').textContent = st.total || 0;
+  } catch(e){}
+  _updatingBadges = false;
+}
+
+async function loadPage(page){
+  document.getElementById('pageContent').innerHTML = '<div class="loading">Loading...</div>';
+  if(refreshIv){ clearInterval(refreshIv); refreshIv=null; }
+  const fn = {dashboard:renderDashboard,users:renderUsers,pairs:renderPairs,trades:renderTrades,deposits:renderDeposits,withdrawals:renderWithdrawals,kyc:renderKYC,ranking:renderRanking,tournaments:renderTournaments,signals:renderSignals,affiliates:renderAffiliatesPage,'affiliate-withdrawals':renderAffiliatesPage,promocodes:renderAffiliatesPage,'deposit-promos':renderDepositPromos,support:renderSupport}[page];
+  if(fn) fn();
+}
+
+// DASHBOARD
+async function renderDashboard(){
+  const data = await api('/api/admin/stats');
+  const s = data?.stats || {};
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-subtitle">Overview of platform activity</div></div></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-lbl">Total Users</div><div class="stat-val">${s.totalUsers||0}</div><div class="stat-chg">Registered traders</div></div>
+      <div class="stat"><div class="stat-lbl">Total Trades</div><div class="stat-val">${s.totalTrades||0}</div><div class="stat-chg c-green">Active: ${s.activeTrades||0}</div></div>
+      <div class="stat"><div class="stat-lbl">Total Volume</div><div class="stat-val">${fmtK(s.totalVolume||0)}</div><div class="stat-chg">All time</div></div>
+      <div class="stat"><div class="stat-lbl">Total P/L</div><div class="stat-val ${(s.totalPnl||0)>=0?'c-green':'c-red'}">${(s.totalPnl||0)>=0?'+':''}${fmtK(s.totalPnl||0)}</div><div class="stat-chg">Platform wide</div></div>
+      <div class="stat"><div class="stat-lbl">Active Alerts</div><div class="stat-val">${s.totalAlerts||0}</div><div class="stat-chg">User alerts</div></div>
+      <div class="stat"><div class="stat-lbl">Tournaments</div><div class="stat-val">${s.totalTournaments||0}</div><div class="stat-chg c-green">Live: ${s.liveTournaments||0}</div></div>
+      <div class="stat"><div class="stat-lbl">Signals (24h)</div><div class="stat-val">${s.totalSignals||0}</div><div class="stat-chg">Auto-generated</div></div>
+      <div class="stat"><div class="stat-lbl">Real Deposits</div><div class="stat-val">${fmtK(s.totalDeposits||0)}</div><div class="stat-chg">All users</div></div>
+    </div>
+    <div style="background:#111626;border:1px solid #1c2238;border-radius:10px;padding:20px">
+      <div style="font-size:12px;color:#7a85a0;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:14px">Quick Access</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="nav(document.querySelector('[data-page=users]'))">👥 Manage Users</button>
+        <button class="btn" onclick="nav(document.querySelector('[data-page=trades]'))">📈 View All Trades</button>
+        <button class="btn" onclick="nav(document.querySelector('[data-page=kyc]'))">📋 KYC Review</button>
+        <button class="btn" onclick="nav(document.querySelector('[data-page=tournaments]'))">🏆 Tournaments</button>
+        <button class="btn" onclick="nav(document.querySelector('[data-page=deposits]'))">💰 Deposits</button>
+      </div>
+    </div>
+  `;
+  refreshIv = setInterval(()=>{ if(currentPage==='dashboard') renderDashboard(); }, 60000);
+}
+
+// USERS
+async function renderUsers(){
+  const data = await api('/api/admin/users?limit=100&search=' + encodeURIComponent(usersSearch));
+  const users = data?.users || [];
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">Users</div><div class="page-subtitle">${data?.total || 0} registered traders</div></div></div>
+    <div class="searchbar">
+      <input class="search-input" id="userSearch" placeholder="Search by name or email..." value="${usersSearch}">
+      <button class="btn btn-primary" onclick="searchUsers()">Search</button>
+      ${usersSearch?'<button class="btn" onclick="clearSearch()">Clear</button>':''}
+    </div>
+    ${users.length===0 ? '<div class="empty"><div class="empty-icon">👥</div>No users found</div>' : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>User</th><th>Country</th><th>Demo Balance</th><th>Real Balance</th><th>Trades</th><th>Win Rate</th><th>P/L</th><th>Joined</th><th></th></tr></thead>
+      <tbody>${users.map(u=>`
+        <tr>
+          <td><div class="user-cell"><div class="avatar">${getInitials(u.name)}</div><div><div class="user-name">${u.name}</div><div class="user-email">${u.email}</div></div></div></td>
+          <td style="font-size:18px">${u.country||'🌍'}</td>
+          <td class="mono">${fmtMoney(u.demoBalance)}</td>
+          <td class="mono c-green">${fmtMoney(u.realBalance)}</td>
+          <td class="mono">${u.stats?.totalTrades||0}</td>
+          <td class="mono">${u.stats?.totalTrades>0?((u.stats.wins/u.stats.totalTrades)*100).toFixed(1)+'%':'—'}</td>
+          <td class="mono ${(u.stats?.totalPnl||0)>=0?'c-green':'c-red'}">${(u.stats?.totalPnl||0)>=0?'+':''}${fmtMoney(u.stats?.totalPnl||0)}</td>
+          <td style="font-size:11px;color:#7a85a0">${fmtDate(u.createdAt)}</td>
+          <td><div class="row-actions">
+            <button class="icon-btn" onclick="viewUser('${u._id}')" title="View">👁</button>
+            <button class="icon-btn" onclick="editBalance('${u._id}','${u.name.replace(/'/g,'')}',${u.demoBalance},${u.realBalance})" title="Edit Balance">💵</button>
+            <button class="icon-btn" onclick="deleteUser('${u._id}','${u.name.replace(/'/g,'')}')" title="Delete">🗑</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+}
+
+function searchUsers(){ usersSearch = document.getElementById('userSearch').value; renderUsers(); }
+function clearSearch(){ usersSearch=''; renderUsers(); }
+
+async function viewUser(id){
+  const data = await api('/api/admin/users/'+id);
+  if(!data?.success) return alert('Failed to load user');
+  const {user, trades, activeTrades} = data;
+  document.getElementById('modalTitle').textContent = 'User — ' + user.name;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="field"><div class="field-lbl">Name</div><div class="field-val">${user.name}</div></div>
+      <div class="field"><div class="field-lbl">Email</div><div class="field-val">${user.email}</div></div>
+      <div class="field"><div class="field-lbl">Country</div><div class="field-val" style="font-size:22px">${user.country||'🌍'}</div></div>
+      <div class="field"><div class="field-lbl">Joined</div><div class="field-val">${fmtDate(user.createdAt)}</div></div>
+      <div class="field"><div class="field-lbl">Demo Balance</div><div class="field-val c-green">${fmtMoney(user.demoBalance)}</div></div>
+      <div class="field"><div class="field-lbl">Real Balance</div><div class="field-val c-green">${fmtMoney(user.realBalance)}</div></div>
+      <div class="field"><div class="field-lbl">Total Trades</div><div class="field-val">${user.stats?.totalTrades||0}</div></div>
+      <div class="field"><div class="field-lbl">Win / Loss</div><div class="field-val"><span class="c-green">${user.stats?.wins||0}</span> / <span class="c-red">${user.stats?.losses||0}</span></div></div>
+      <div class="field"><div class="field-lbl">Total P/L</div><div class="field-val ${(user.stats?.totalPnl||0)>=0?'c-green':'c-red'}">${(user.stats?.totalPnl||0)>=0?'+':''}${fmtMoney(user.stats?.totalPnl||0)}</div></div>
+      <div class="field"><div class="field-lbl">Best Streak</div><div class="field-val">${user.stats?.bestStreak||0} wins</div></div>
+    </div>
+    <div style="padding:10px 14px;background:#0b0e18;border-radius:6px;border:1px solid #1c2238;margin-bottom:16px;display:flex;justify-content:space-between;font-size:12px">
+      <span style="color:#7a85a0">Active trades right now:</span>
+      <span class="mono" style="font-weight:700;color:${activeTrades>0?'#00ff9d':'#7a85a0'}">${activeTrades}</span>
+    </div>
+    ${trades.length>0 ? `
+      <div class="field-lbl" style="margin-bottom:8px">Recent Trade History (last ${trades.length})</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Pair</th><th>Dir</th><th>Amount</th><th>P/L</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody>${trades.slice(0,15).map(t=>`
+          <tr>
+            <td class="mono" style="font-size:11px">${t.pair||t.symbol}</td>
+            <td><span class="badge ${t.direction==='HIGHER'?'b-green':'b-red'}">${t.direction}</span></td>
+            <td class="mono" style="font-size:11px">${fmtMoney(t.amount)}</td>
+            <td class="mono" style="font-size:11px" class="${t.profitLoss>=0?'c-green':'c-red'}">${t.profitLoss>=0?'+':''}${fmtMoney(t.profitLoss)}</td>
+            <td><span class="badge ${t.status==='won'?'b-green':t.status==='lost'?'b-red':'b-yellow'}">${t.status}</span></td>
+            <td style="font-size:10px;color:#7a85a0">${timeAgo(t.createdAt)}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>
+    ` : '<div style="text-align:center;color:#4a5570;padding:20px;font-size:12px">No trades yet</div>'}
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function editBalance(id, name, demo, real){
+  const newDemo = prompt('Edit Demo Balance for ' + name + '\n(Current: ' + demo + ')', demo);
+  if(newDemo===null) return;
+  const newReal = prompt('Edit Real Balance for ' + name + '\n(Current: ' + real + ')', real);
+  if(newReal===null) return;
+  const res = await api('/api/admin/users/'+id+'/balance', {method:'PUT', body:{demoBalance:+newDemo, realBalance:+newReal}});
+  if(res?.success){ alert('Balance updated!'); renderUsers(); }
+  else alert('Failed: '+(res?.message||'Unknown'));
+}
+
+async function deleteUser(id, name){
+  if(!confirm('Delete user "'+name+'"?\n\nThis will also delete all their trades and alerts.')) return;
+  const res = await api('/api/admin/users/'+id, {method:'DELETE'});
+  if(res?.success){ alert('User deleted!'); renderUsers(); }
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('active'); }
+
+// PAIRS
+let pairsCache = {};
+async function renderPairs(){
+  const data = await api('/api/admin/pairs');
+  const pairs = data?.pairs || [];
+  pairsCache = {};
+  pairs.forEach(p => { pairsCache[p._id] = p; });
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Trading Pairs</div><div class="page-subtitle">${pairs.length} pairs configured</div></div>
+      <button class="btn btn-primary" onclick="openPairForm()">+ Add Pair</button>
+    </div>
+    <div class="card-grid">${pairs.map(p=>`
+      <div class="card" style="${!p.enabled?'opacity:0.5;border-color:#ef444444':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            ${p.otc&&p.flag?`<span style="font-size:24px">${p.flag}</span>`:p.logo?`<img src="${p.logo}" style="width:28px;height:28px;border-radius:50%;background:#1a2035" onerror="this.style.display='none'">`:''}
+            <div>
+              <div style="font-size:14px;font-weight:700">${p.pair} ${p.otc?'<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:#eab30822;color:#eab308;font-weight:600;margin-left:4px">OTC</span>':''}</div>
+              <div style="font-size:10px;color:#7a85a0">${p.symbol} • ${p.category}</div>
+            </div>
+          </div>
+          <div style="font-size:14px;font-family:'JetBrains Mono',monospace;color:#00ff9d;font-weight:700">+${p.payout}%</div>
+        </div>
+        ${p.otc?`<div style="background:#0b0e18;border-radius:6px;padding:8px 10px;margin-bottom:10px;border:1px solid #eab30833">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:10px;color:#eab308;font-weight:600">💰 OTC PRICE CONTROL</span>
+            <span style="font-size:12px;font-family:'JetBrains Mono',monospace;color:#e8ecf4;font-weight:700">${p.basePrice}</span>
+          </div>
+          <div style="display:flex;gap:4px">
+            <input id="bp_${p._id}" type="number" step="any" value="${p.basePrice}" style="flex:1;background:#111626;border:1px solid #1c2238;border-radius:4px;padding:5px 8px;color:#e8ecf4;font-size:12px;font-family:'JetBrains Mono',monospace;outline:none" placeholder="Enter price">
+            <button class="btn btn-sm" style="background:#16a34a;color:#fff;font-size:10px;padding:4px 10px" onclick="setOtcPrice('${p._id}',document.getElementById('bp_${p._id}').value)">📈 Set</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:6px">
+            <button class="btn btn-sm" style="flex:1;font-size:10px;background:#16a34a33;color:#16a34a" onclick="pumpDump('${p._id}',0.5)">⬆ Pump</button>
+            <button class="btn btn-sm" style="flex:1;font-size:10px;background:#ef444433;color:#ef4444" onclick="pumpDump('${p._id}',-0.5)">⬇ Dump</button>
+            <button class="btn btn-sm" style="flex:1;font-size:10px;background:#3b82f633;color:#3b82f6" onclick="pumpDump('${p._id}',0)">⚖ Neutral</button>
+          </div>
+        </div>`:''}
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px;color:#7a85a0;text-align:center;padding:8px;background:#0b0e18;border-radius:6px;margin-bottom:10px">
+          <div>Trades<br><strong style="color:#e8ecf4;font-size:14px;font-family:'JetBrains Mono',monospace">${p.totalTrades}</strong></div>
+          <div>Volume<br><strong style="color:#e8ecf4;font-size:14px;font-family:'JetBrains Mono',monospace">${fmtK(p.totalVolume)}</strong></div>
+          <div>Win Rate<br><strong style="color:#e8ecf4;font-size:14px;font-family:'JetBrains Mono',monospace">${p.winRate}%</strong></div>
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:10px;justify-content:center">
+          <span class="badge b-green">✓ ${p.wins}</span>
+          <span class="badge b-red">✗ ${p.losses}</span>
+          <span class="badge b-yellow">↻ ${p.activeTrades}</span>
+          <span class="badge ${p.enabled?'b-green':'b-red'}">${p.enabled?'ENABLED':'DISABLED'}</span>
+        </div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm" style="flex:1" onclick="editPair('${p._id}')">✏️ Edit</button>
+          <button class="btn btn-sm" style="flex:1" onclick="togglePair('${p._id}')">${p.enabled?'🔴 Disable':'🟢 Enable'}</button>
+          <button class="btn btn-sm btn-danger" onclick="deletePair('${p._id}','${p.symbol}')">🗑</button>
+        </div>
+      </div>`).join('')}</div>
+  `;
+}
+
+function editPair(id){
+  const p = pairsCache[id];
+  if (!p) return alert('Pair not found');
+  openPairForm(p);
+}
+
+function openPairForm(existing){
+  const isEdit = !!existing;
+  const p = existing || {symbol:'',label:'',short:'',pair:'',payout:80,precision:2,logo:'',category:'crypto',enabled:true,sortOrder:0,minAmount:1,maxAmount:10000,otc:false,basePrice:0,volatility:0.0001,flag:'',trendBias:0,priceOffset:0};
+  document.getElementById('modalTitle').textContent = isEdit ? 'Edit Pair' : 'Add New Pair';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="field"><div class="field-lbl">Symbol *</div><input id="f_symbol" class="search-input" style="width:100%;max-width:none" value="${p.symbol}" placeholder="BTCUSDT or EURUSD_OTC" ${isEdit?'disabled':''}></div>
+      <div class="field"><div class="field-lbl">Short Code *</div><input id="f_short" class="search-input" style="width:100%;max-width:none" value="${p.short}" placeholder="BTC or EUR/USD"></div>
+      <div class="field"><div class="field-lbl">Display Name *</div><input id="f_label" class="search-input" style="width:100%;max-width:none" value="${p.label}" placeholder="Bitcoin or EUR/USD (OTC)"></div>
+      <div class="field"><div class="field-lbl">Pair Display *</div><input id="f_pair" class="search-input" style="width:100%;max-width:none" value="${p.pair}" placeholder="BTC/USDT or EUR/USD"></div>
+      <div class="field"><div class="field-lbl">Payout %</div><input id="f_payout" type="number" class="search-input" style="width:100%;max-width:none" value="${p.payout}" min="0" max="100"></div>
+      <div class="field"><div class="field-lbl">Precision (decimals)</div><input id="f_precision" type="number" class="search-input" style="width:100%;max-width:none" value="${p.precision}" min="0" max="8"></div>
+      <div class="field" style="grid-column:span 2"><div class="field-lbl">Logo URL</div><input id="f_logo" class="search-input" style="width:100%;max-width:none" value="${p.logo||''}" placeholder="https://..."></div>
+      <div class="field"><div class="field-lbl">Category</div>
+        <select id="f_category" class="search-input" style="width:100%;max-width:none">
+          <option value="crypto" ${p.category==='crypto'?'selected':''}>Crypto</option>
+          <option value="forex" ${p.category==='forex'?'selected':''}>Forex</option>
+          <option value="stocks" ${p.category==='stocks'?'selected':''}>Stocks</option>
+          <option value="indices" ${p.category==='indices'?'selected':''}>Indices</option>
+          <option value="commodities" ${p.category==='commodities'?'selected':''}>Commodities</option>
+        </select>
+      </div>
+      <div class="field"><div class="field-lbl">Sort Order</div><input id="f_sortOrder" type="number" class="search-input" style="width:100%;max-width:none" value="${p.sortOrder}"></div>
+      <div class="field"><div class="field-lbl">Min Amount</div><input id="f_minAmount" type="number" class="search-input" style="width:100%;max-width:none" value="${p.minAmount}"></div>
+      <div class="field"><div class="field-lbl">Max Amount</div><input id="f_maxAmount" type="number" class="search-input" style="width:100%;max-width:none" value="${p.maxAmount}"></div>
+      <div class="field" style="grid-column:span 2">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input id="f_enabled" type="checkbox" ${p.enabled?'checked':''} style="width:16px;height:16px;cursor:pointer">
+          <span style="font-size:13px">Enabled (visible to users)</span>
+        </label>
+      </div>
+      <div class="field" style="grid-column:span 2">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input id="f_otc" type="checkbox" ${p.otc?'checked':''} style="width:16px;height:16px;cursor:pointer" onchange="document.getElementById('otcFields').style.display=this.checked?'grid':'none'">
+          <span style="font-size:13px;color:#eab308;font-weight:600">🌐 OTC Pair (simulated price)</span>
+        </label>
+      </div>
+    </div>
+    <div id="otcFields" class="detail-grid" style="display:${p.otc?'grid':'none'};margin-top:12px;padding:12px;background:#0b0e18;border-radius:8px;border:1px solid #eab30833">
+      <div style="grid-column:span 2;font-size:12px;font-weight:700;color:#eab308;margin-bottom:4px">💰 OTC Price Settings</div>
+      <div class="field"><div class="field-lbl" style="color:#eab308">Base Price (market price)</div><input id="f_basePrice" type="number" step="any" class="search-input" style="width:100%;max-width:none;border-color:#eab30855;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700" value="${p.basePrice||0}"></div>
+      <div class="field"><div class="field-lbl" style="color:#eab308">Volatility</div><input id="f_volatility" type="number" step="any" class="search-input" style="width:100%;max-width:none;border-color:#eab30855" value="${p.volatility||0.0001}"></div>
+      <div class="field"><div class="field-lbl" style="color:#eab308">Flag Emoji</div><input id="f_flag" class="search-input" style="width:100%;max-width:none;border-color:#eab30855;font-size:18px" value="${p.flag||''}" placeholder="🇪🇺"></div>
+      <div class="field"><div class="field-lbl" style="color:#eab308">Trend Bias (-1 dump ↔ +1 pump)</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="f_trendBias" type="range" min="-1" max="1" step="0.1" value="${p.trendBias||0}" style="flex:1;cursor:pointer" oninput="document.getElementById('biasVal').textContent=this.value">
+          <span id="biasVal" style="font-family:'JetBrains Mono',monospace;font-size:13px;min-width:36px;text-align:center;color:${(p.trendBias||0)>0?'#16a34a':(p.trendBias||0)<0?'#ef4444':'#7a85a0'}">${p.trendBias||0}</span>
+        </div>
+      </div>
+      <div class="field"><div class="field-lbl" style="color:#eab308">Price Offset</div><input id="f_priceOffset" type="number" step="any" class="search-input" style="width:100%;max-width:none;border-color:#eab30855" value="${p.priceOffset||0}"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="savePair(${isEdit?`'${p._id}'`:'null'})">${isEdit?'Update Pair':'Create Pair'}</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function savePair(id){
+  const isOtc = document.getElementById('f_otc').checked;
+  const body = {
+    symbol: document.getElementById('f_symbol').value.trim().toUpperCase(),
+    short: document.getElementById('f_short').value.trim(),
+    label: document.getElementById('f_label').value.trim(),
+    pair: document.getElementById('f_pair').value.trim(),
+    payout: +document.getElementById('f_payout').value,
+    precision: +document.getElementById('f_precision').value,
+    logo: document.getElementById('f_logo').value.trim(),
+    category: document.getElementById('f_category').value,
+    sortOrder: +document.getElementById('f_sortOrder').value,
+    minAmount: +document.getElementById('f_minAmount').value,
+    maxAmount: +document.getElementById('f_maxAmount').value,
+    enabled: document.getElementById('f_enabled').checked,
+    otc: isOtc,
+  };
+  if (isOtc) {
+    body.basePrice = +document.getElementById('f_basePrice').value;
+    body.volatility = +document.getElementById('f_volatility').value;
+    body.flag = document.getElementById('f_flag').value.trim();
+    body.trendBias = +document.getElementById('f_trendBias').value;
+    body.priceOffset = +document.getElementById('f_priceOffset').value;
+  }
+  if (!body.symbol || !body.short || !body.label || !body.pair) {
+    alert('Symbol, Short Code, Display Name, and Pair Display are required');
+    return;
+  }
+  if (isOtc && !body.basePrice) {
+    alert('Base Price is required for OTC pairs');
+    return;
+  }
+  const res = id
+    ? await api('/api/admin/pairs/' + id, { method: 'PUT', body })
+    : await api('/api/admin/pairs', { method: 'POST', body });
+  if (res?.success) {
+    closeModal();
+    renderPairs();
+  } else {
+    alert('Failed: ' + (res?.message || 'Unknown error'));
+  }
+}
+
+async function togglePair(id){
+  const res = await api('/api/admin/pairs/' + id + '/toggle', { method: 'POST' });
+  if (res?.success) renderPairs();
+  else alert('Toggle failed');
+}
+
+async function deletePair(id, symbol){
+  if (!confirm('Delete pair "' + symbol + '"?\n\nThis will NOT delete past trades, but the pair will not be available anymore.')) return;
+  const res = await api('/api/admin/pairs/' + id, { method: 'DELETE' });
+  if (res?.success) renderPairs();
+  else alert('Delete failed');
+}
+
+// OTC: Set exact price — updates basePrice in DB, frontend picks it up on next pair load
+async function setOtcPrice(id, price){
+  const p = parseFloat(price);
+  if (!p || isNaN(p)) return alert('Enter a valid price');
+  const res = await api('/api/admin/pairs/' + id + '/price-control', { method: 'POST', body: { basePrice: p } });
+  if (res?.success) {
+    // Show success flash
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Saved!';
+    btn.style.background = '#16a34a';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 1500);
+  } else {
+    alert('Failed: ' + (res?.message || 'Unknown error'));
+  }
+}
+
+// OTC: Pump/Dump — sets trendBias (-1 to +1)
+async function pumpDump(id, bias){
+  const res = await api('/api/admin/pairs/' + id + '/price-control', { method: 'POST', body: { trendBias: bias } });
+  if (res?.success) {
+    const label = bias > 0 ? '📈 Pumping' : bias < 0 ? '📉 Dumping' : '⚖ Neutral';
+    // Flash feedback
+    const cards = document.querySelectorAll('.card');
+    renderPairs();
+  } else {
+    alert('Failed: ' + (res?.message || 'Unknown error'));
+  }
+}
+
+// TRADES
+async function renderTrades(){
+  const data = await api('/api/admin/trades?limit=100');
+  const trades = data?.trades || [];
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">All Trades</div><div class="page-subtitle">${data?.total||0} total</div></div></div>
+    ${trades.length===0 ? '<div class="empty"><div class="empty-icon">📈</div>No trades yet</div>' : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>User</th><th>Pair</th><th>Dir</th><th>Amount</th><th>Entry</th><th>Exit</th><th>P/L</th><th>Status</th><th>Time</th></tr></thead>
+      <tbody>${trades.map(t=>`
+        <tr>
+          <td>${t.user?.name?`<div class="user-cell"><div class="avatar">${getInitials(t.user.name)}</div><div><div class="user-name">${t.user.name}</div></div></div>`:'—'}</td>
+          <td class="mono" style="font-size:11px">${t.pair||t.symbol}</td>
+          <td><span class="badge ${t.direction==='HIGHER'?'b-green':'b-red'}">${t.direction}</span></td>
+          <td class="mono">${fmtMoney(t.amount)}</td>
+          <td class="mono" style="font-size:11px">${t.entry}</td>
+          <td class="mono" style="font-size:11px">${t.exit||'—'}</td>
+          <td class="mono ${t.profitLoss>=0?'c-green':'c-red'}">${t.profitLoss>=0?'+':''}${fmtMoney(t.profitLoss)}</td>
+          <td><span class="badge ${t.status==='won'?'b-green':t.status==='lost'?'b-red':t.status==='active'?'b-yellow':'b-blue'}">${t.status}</span></td>
+          <td style="font-size:10px;color:#7a85a0">${timeAgo(t.createdAt)}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+}
+
+// DEPOSITS
+async function renderDeposits(){
+  const data = await api('/api/admin/deposits');
+  const deposits = data?.deposits || [];
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">Deposits</div><div class="page-subtitle">${deposits.length} deposits received</div></div></div>
+    ${deposits.length===0 ? '<div class="empty"><div class="empty-icon">💰</div>No deposits yet<br><small>Integrate a payment provider to enable real deposits</small></div>' : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>${deposits.map(d=>`
+        <tr>
+          <td><div class="user-cell"><div class="avatar">${getInitials(d.user.name)}</div><div><div class="user-name">${d.user.name}</div><div class="user-email">${d.user.email}</div></div></div></td>
+          <td class="mono c-green" style="font-size:14px;font-weight:700">+${fmtMoney(d.amount)}</td>
+          <td><span class="badge b-blue">${d.method}</span></td>
+          <td><span class="badge b-green">${d.status}</span></td>
+          <td style="font-size:11px;color:#7a85a0">${fmtDate(d.date)}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+}
+
+// WITHDRAWALS
+async function renderWithdrawals(){
+  const data = await api('/api/admin/withdrawals');
+  const w = data?.withdrawals || [];
+  const c = data?.counts || {};
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">Withdrawals</div><div class="page-subtitle">${w.length} total — ${c.pending||0} pending</div></div></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-sm ${!window._wdFilter||window._wdFilter==='all'?'btn-primary':''}" onclick="window._wdFilter='all';renderWithdrawals()">All (${data?.total||0})</button>
+      <button class="btn btn-sm ${window._wdFilter==='pending'?'btn-primary':''}" onclick="window._wdFilter='pending';renderWithdrawals()">Pending (${c.pending||0})</button>
+      <button class="btn btn-sm ${window._wdFilter==='processing'?'btn-primary':''}" onclick="window._wdFilter='processing';renderWithdrawals()">Processing (${c.processing||0})</button>
+      <button class="btn btn-sm ${window._wdFilter==='completed'?'btn-primary':''}" onclick="window._wdFilter='completed';renderWithdrawals()">Completed (${c.completed||0})</button>
+      <button class="btn btn-sm ${window._wdFilter==='rejected'?'btn-primary':''}" onclick="window._wdFilter='rejected';renderWithdrawals()">Rejected (${c.rejected||0})</button>
+    </div>
+    ${w.length===0 ? '<div class="empty"><div class="empty-icon">💸</div>No withdrawals found</div>' : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>User</th><th>Amount</th><th>Currency</th><th>Wallet Address</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>${w.filter(x=>!window._wdFilter||window._wdFilter==='all'||x.status===window._wdFilter).map(x=>`
+        <tr>
+          <td><div class="user-cell"><div class="avatar">${getInitials(x.userName||'U')}</div><div><div class="user-name">${x.userName||'—'}</div><div class="user-email">${x.userEmail||''}</div></div></div></td>
+          <td class="mono c-red" style="font-weight:700">$${(x.amount||0).toFixed(2)}</td>
+          <td>${x.currency||'—'}</td>
+          <td style="font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${x.walletAddress||''}">${x.walletAddress||'—'}</td>
+          <td><span class="badge ${x.status==='completed'?'b-green':x.status==='rejected'?'b-red':x.status==='processing'?'b-blue':'b-yellow'}">${x.status}</span></td>
+          <td style="font-size:11px">${fmtDate(x.createdAt)}</td>
+          <td><div class="row-actions">
+            ${x.status==='pending'?`
+              <button class="btn btn-sm btn-primary" onclick="updateWdStatus('${x._id}','processing')" title="Start Processing">⏳ Process</button>
+              <button class="btn btn-sm btn-danger" onclick="updateWdStatus('${x._id}','rejected')" title="Reject">✗ Reject</button>
+            `:''}
+            ${x.status==='processing'?`
+              <button class="btn btn-sm btn-primary" onclick="updateWdStatus('${x._id}','completed')" title="Mark Complete">✓ Complete</button>
+              <button class="btn btn-sm btn-danger" onclick="updateWdStatus('${x._id}','rejected')" title="Reject">✗ Reject</button>
+            `:''}
+            ${x.status==='completed'?'<span style="color:#22c55e;font-size:11px">✓ Done</span>':''}
+            ${x.status==='rejected'?'<span style="color:#ef4444;font-size:11px">✗ Rejected</span>':''}
+          </div></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+}
+
+async function updateWdStatus(id, status){
+  let rejectionReason = '';
+  if(status==='rejected'){
+    rejectionReason = prompt('Reason for rejection (optional):') || 'Policy violation';
+  }
+  if(status==='completed' && !confirm('Mark this withdrawal as completed? This confirms the funds have been sent.')) return;
+  const res = await api('/api/admin/withdrawals/'+id+'/status', {method:'PUT', body:{status, rejectionReason}});
+  if(res?.success){ renderWithdrawals(); }
+}
+
+// KYC — only real submissions
+async function renderKYC(){
+  const data = await api('/api/admin/kyc');
+  const kyc = data?.kyc || [];
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">KYC Verification</div><div class="page-subtitle">${kyc.length} real submissions</div></div></div>
+    ${kyc.length===0 ? '<div class="empty"><div class="empty-icon">📋</div>No KYC submissions yet<br><small>Users will submit documents here when they complete KYC</small></div>' : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>User</th><th>Country</th><th>Documents</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead>
+      <tbody>${kyc.map(k=>`
+        <tr>
+          <td>${k.user?.name ? `<div class="user-cell"><div class="avatar">${getInitials(k.user.name)}</div><div><div class="user-name">${k.user.name}</div><div class="user-email">${k.user.email||''}</div></div></div>` : '<em style="color:#7a85a0">Deleted user</em>'}</td>
+          <td style="font-size:18px">${k.user?.country||'🌍'}</td>
+          <td>${(k.documents||[]).length>0 ? k.documents.map(d=>`<span class="badge b-blue" style="margin-right:4px">${d.type||'doc'}</span>`).join('') : '<em style="color:#7a85a0;font-size:11px">No documents</em>'}</td>
+          <td><span class="badge ${k.status==='approved'?'b-green':k.status==='rejected'?'b-red':'b-yellow'}">${k.status}</span></td>
+          <td style="font-size:11px">${fmtDate(k.submittedAt)}</td>
+          <td><div class="row-actions">
+            <button class="btn btn-sm btn-primary" onclick="updateKYC('${k._id}','approved')" title="Approve">✓</button>
+            <button class="btn btn-sm btn-danger" onclick="updateKYC('${k._id}','rejected')" title="Reject">✗</button>
+            <button class="icon-btn" onclick="deleteKYC('${k._id}')" title="Delete">🗑</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+}
+
+async function updateKYC(id, status){
+  let rejectionReason = '';
+  if (status === 'rejected') {
+    rejectionReason = prompt('Reason for rejection (optional):') || '';
+  }
+  const res = await api('/api/admin/kyc/'+id, {method:'PUT', body:{status, rejectionReason}});
+  if(res?.success){ renderKYC(); }
+}
+
+async function deleteKYC(id){
+  if (!confirm('Delete this KYC record?')) return;
+  const res = await api('/api/admin/kyc/'+id, {method:'DELETE'});
+  if(res?.success) renderKYC();
+}
+
+// RANKING — real users + custom admin-added traders
+let tradersCache = {};
+async function renderRanking(){
+  const [lbData, customData] = await Promise.all([
+    api('/api/leaderboard?period=all&limit=100'),
+    api('/api/admin/custom-traders'),
+  ]);
+  const lb = lbData?.leaderboard || [];
+  const customTraders = customData?.traders || [];
+  tradersCache = {};
+  customTraders.forEach(t => { tradersCache[t._id] = t; });
+
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Global Ranking</div><div class="page-subtitle">${lb.length} traders displayed • ${customTraders.length} custom</div></div>
+      <button class="btn btn-primary" onclick="openTraderForm()">+ Add Trader</button>
+    </div>
+
+    <div style="background:#111626;border:1px solid #1c2238;border-radius:10px;padding:16px;margin-bottom:20px">
+      <div style="font-size:11px;color:#7a85a0;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:12px">📊 Leaderboard (Real + Custom)</div>
+      ${lb.length===0 ? '<div class="empty"><div class="empty-icon">🏅</div>No traders yet<br><small>Real users appear automatically after trading, or add custom traders above</small></div>' : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Rank</th><th>Trader</th><th>Type</th><th>Country</th><th>Trades</th><th>Win Rate</th><th>Streak</th><th>Total P/L</th></tr></thead>
+        <tbody>${lb.map(u=>{
+          const medal = u.rank===1?'🥇':u.rank===2?'🥈':u.rank===3?'🥉':'';
+          return `<tr>
+            <td style="font-size:${u.rank<=3?'22':'14'}px;font-weight:700;color:${u.rank<=3?'#00ff9d':'#7a85a0'}">${medal||'#'+u.rank}</td>
+            <td><div class="user-name">${u.name}</div></td>
+            <td><span class="badge ${u._type==='custom'?'b-yellow':'b-blue'}">${u._type==='custom'?'CUSTOM':'REAL'}</span></td>
+            <td style="font-size:18px">${u.country||'🌍'}</td>
+            <td class="mono">${u.trades}</td>
+            <td class="mono">${u.winRate}%</td>
+            <td class="mono">🔥 ${u.streak||0}</td>
+            <td class="mono ${u.pnl>=0?'c-green':'c-red'}" style="font-weight:700">${u.pnl>=0?'+':''}${fmtMoney(u.pnl)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>`}
+    </div>
+
+    ${customTraders.length>0 ? `
+    <div style="background:#111626;border:1px solid #1c2238;border-radius:10px;padding:16px">
+      <div style="font-size:11px;color:#7a85a0;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:12px">✏️ Manage Custom Traders</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Country</th><th>P/L</th><th>Trades</th><th>Win/Loss</th><th>Streak</th><th>Visible</th><th>Actions</th></tr></thead>
+        <tbody>${customTraders.map(t=>`
+          <tr>
+            <td><div class="user-name">${t.name}</div></td>
+            <td style="font-size:18px">${t.country||'🌍'}</td>
+            <td class="mono ${t.pnl>=0?'c-green':'c-red'}">${t.pnl>=0?'+':''}${fmtMoney(t.pnl)}</td>
+            <td class="mono">${t.trades}</td>
+            <td class="mono"><span class="c-green">${t.wins}</span>/<span class="c-red">${t.trades-t.wins}</span></td>
+            <td class="mono">🔥 ${t.streak}</td>
+            <td><span class="badge ${t.visible?'b-green':'b-red'}">${t.visible?'SHOWN':'HIDDEN'}</span></td>
+            <td><div class="row-actions">
+              <button class="icon-btn" onclick="editTrader('${t._id}')" title="Edit">✏️</button>
+              <button class="icon-btn" onclick="toggleTrader('${t._id}')" title="Toggle visibility">${t.visible?'👁':'🔒'}</button>
+              <button class="icon-btn" onclick="deleteTrader('${t._id}','${t.name.replace(/'/g,'')}')" title="Delete">🗑</button>
+            </div></td>
+          </tr>`).join('')}</tbody>
+      </table></div>
+    </div>` : ''}
+  `;
+}
+
+function openTraderForm(existing){
+  const isEdit = !!existing;
+  const t = existing || { name:'', country:'🌍', pnl:0, trades:0, wins:0, streak:0, avatar:'', visible:true };
+  document.getElementById('modalTitle').textContent = isEdit ? 'Edit Trader' : 'Add Custom Trader';
+  document.getElementById('modalBody').innerHTML = `
+    <div style="font-size:12px;color:#7a85a0;margin-bottom:14px;padding:10px;background:#0b0e18;border-radius:6px;border:1px solid #1c2238">
+      ℹ️ Custom traders appear on the leaderboard alongside real users but have no actual trading activity.
+    </div>
+    <div class="detail-grid">
+      <div class="field"><div class="field-lbl">Name *</div><input id="t_name" class="search-input" style="width:100%;max-width:none" value="${t.name}" placeholder="e.g. CryptoKing_94"></div>
+      <div class="field"><div class="field-lbl">Country Flag 🌍</div><input id="t_country" class="search-input" style="width:100%;max-width:none" value="${t.country}" placeholder="🇺🇸 🇷🇺 🇬🇧 etc."></div>
+      <div class="field"><div class="field-lbl">Total P/L</div><input id="t_pnl" type="number" step="0.01" class="search-input" style="width:100%;max-width:none" value="${t.pnl}" placeholder="e.g. 48765.23"></div>
+      <div class="field"><div class="field-lbl">Total Trades</div><input id="t_trades" type="number" class="search-input" style="width:100%;max-width:none" value="${t.trades}" placeholder="e.g. 1245"></div>
+      <div class="field"><div class="field-lbl">Wins</div><input id="t_wins" type="number" class="search-input" style="width:100%;max-width:none" value="${t.wins}" placeholder="e.g. 976"></div>
+      <div class="field"><div class="field-lbl">Best Streak</div><input id="t_streak" type="number" class="search-input" style="width:100%;max-width:none" value="${t.streak}" placeholder="e.g. 12"></div>
+      <div class="field" style="grid-column:span 2"><div class="field-lbl">Avatar URL (optional)</div><input id="t_avatar" class="search-input" style="width:100%;max-width:none" value="${t.avatar||''}" placeholder="https://..."></div>
+      <div class="field" style="grid-column:span 2">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input id="t_visible" type="checkbox" ${t.visible?'checked':''} style="width:16px;height:16px;cursor:pointer">
+          <span style="font-size:13px">Visible on leaderboard</span>
+        </label>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveTrader(${isEdit?`'${t._id}'`:'null'})">${isEdit?'Update Trader':'Add Trader'}</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+function editTrader(id){
+  const t = tradersCache[id];
+  if (!t) return alert('Trader not found');
+  openTraderForm(t);
+}
+
+async function saveTrader(id){
+  const body = {
+    name: document.getElementById('t_name').value.trim(),
+    country: document.getElementById('t_country').value.trim() || '🌍',
+    pnl: +document.getElementById('t_pnl').value || 0,
+    trades: +document.getElementById('t_trades').value || 0,
+    wins: +document.getElementById('t_wins').value || 0,
+    streak: +document.getElementById('t_streak').value || 0,
+    avatar: document.getElementById('t_avatar').value.trim(),
+    visible: document.getElementById('t_visible').checked,
+  };
+  if (!body.name) return alert('Name is required');
+  const res = id
+    ? await api('/api/admin/custom-traders/' + id, { method: 'PUT', body })
+    : await api('/api/admin/custom-traders', { method: 'POST', body });
+  if (res?.success) {
+    closeModal();
+    renderRanking();
+  } else {
+    alert('Failed: ' + (res?.message || 'Unknown error'));
+  }
+}
+
+async function toggleTrader(id){
+  const t = tradersCache[id];
+  if (!t) return;
+  const res = await api('/api/admin/custom-traders/'+id, {method:'PUT', body:{visible:!t.visible}});
+  if (res?.success) renderRanking();
+}
+
+async function deleteTrader(id, name){
+  if (!confirm('Delete trader "' + name + '" from leaderboard?')) return;
+  const res = await api('/api/admin/custom-traders/'+id, {method:'DELETE'});
+  if (res?.success) renderRanking();
+}
+
+// TOURNAMENTS — admin CRUD
+let tournamentsCache = {};
+async function renderTournaments(){
+  const data = await api('/api/admin/tournaments');
+  const t = data?.tournaments || [];
+  tournamentsCache = {};
+  t.forEach(x => { tournamentsCache[x._id] = x; });
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Tournaments</div><div class="page-subtitle">${t.length} total • Create custom tournaments</div></div>
+      <button class="btn btn-primary" onclick="openTournamentForm()">+ Add Tournament</button>
+    </div>
+    ${t.length===0 ? '<div class="empty"><div class="empty-icon">🏆</div>No tournaments yet<br><small>Click "+ Add Tournament" to create your first one</small></div>' : `
+    <div class="card-grid">${t.map(x=>{
+      const now = Date.now();
+      const startsAt = new Date(x.startsAt).getTime();
+      const endsAt = new Date(x.endsAt).getTime();
+      const status = now < startsAt ? 'upcoming' : now < endsAt ? 'live' : 'ended';
+      const participantCount = (x.participants||[]).length;
+      const progress = x.maxParticipants > 0 ? Math.round((participantCount/x.maxParticipants)*100) : 0;
+      return `
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="font-size:28px">${x.icon||'🏆'}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700">${x.title}</div>
+            <div style="font-size:11px;color:#7a85a0;margin-top:2px">${x.description||''}</div>
+          </div>
+          <span class="badge ${status==='live'?'b-red':status==='ended'?'b-blue':'b-yellow'}">${status.toUpperCase()}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div style="padding:8px;background:#0b0e18;border-radius:6px;border:1px solid #1c2238"><div style="font-size:9px;color:#7a85a0;text-transform:uppercase">Prize Pool</div><div class="mono c-green" style="font-size:15px;font-weight:700">${fmtMoney(x.prize)}</div></div>
+          <div style="padding:8px;background:#0b0e18;border-radius:6px;border:1px solid #1c2238"><div style="font-size:9px;color:#7a85a0;text-transform:uppercase">Entry Fee</div><div class="mono ${x.entryFee===0?'c-green':''}" style="font-size:15px;font-weight:700">${x.entryFee===0?'FREE':fmtMoney(x.entryFee)}</div></div>
+        </div>
+        <div style="font-size:10px;color:#7a85a0;margin-bottom:4px">👥 ${participantCount}/${x.maxParticipants} • ${progress}% filled</div>
+        <div style="height:4px;background:#1a2035;border-radius:2px;overflow:hidden;margin-bottom:10px"><div style="height:100%;background:linear-gradient(90deg,#00ff9d,#00cc7d);width:${progress}%"></div></div>
+        <div style="font-size:10px;color:#7a85a0;margin-bottom:10px">
+          <div>Starts: ${fmtDate(x.startsAt)}</div>
+          <div>Ends: ${fmtDate(x.endsAt)}</div>
+        </div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm" style="flex:1" onclick="editTournament('${x._id}')">✏️ Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteTournament('${x._id}','${x.title.replace(/'/g,'')}')">🗑 Delete</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`}
+  `;
+}
+
+function openTournamentForm(existing){
+  const isEdit = !!existing;
+  // Format date to YYYY-MM-DDTHH:MM for datetime-local input
+  const toLocal = (d) => {
+    if (!d) return '';
+    const date = new Date(d);
+    const pad = n => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+  const nowPlus = (hours) => toLocal(new Date(Date.now() + hours*3600*1000));
+  const t = existing || {
+    title:'', description:'', icon:'🏆', prize:1000, entryFee:0, maxParticipants:1000,
+    startsAt: nowPlus(1), endsAt: nowPlus(24),
+  };
+  const startsVal = existing ? toLocal(existing.startsAt) : t.startsAt;
+  const endsVal = existing ? toLocal(existing.endsAt) : t.endsAt;
+  document.getElementById('modalTitle').textContent = isEdit ? 'Edit Tournament' : 'Create Tournament';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="field" style="grid-column:span 2"><div class="field-lbl">Title *</div><input id="tn_title" class="search-input" style="width:100%;max-width:none" value="${t.title}" placeholder="e.g. Weekly Championship"></div>
+      <div class="field" style="grid-column:span 2"><div class="field-lbl">Description</div><input id="tn_description" class="search-input" style="width:100%;max-width:none" value="${t.description||''}" placeholder="Short description"></div>
+      <div class="field"><div class="field-lbl">Icon Emoji</div><input id="tn_icon" class="search-input" style="width:100%;max-width:none" value="${t.icon||'🏆'}" placeholder="🏆 ⚡ 👑 ⭐ 🎯"></div>
+      <div class="field"><div class="field-lbl">Max Participants</div><input id="tn_maxParticipants" type="number" class="search-input" style="width:100%;max-width:none" value="${t.maxParticipants}" min="1"></div>
+      <div class="field"><div class="field-lbl">Prize Pool ($)</div><input id="tn_prize" type="number" step="1" class="search-input" style="width:100%;max-width:none" value="${t.prize}" min="0"></div>
+      <div class="field"><div class="field-lbl">Entry Fee ($)</div><input id="tn_entryFee" type="number" step="1" class="search-input" style="width:100%;max-width:none" value="${t.entryFee||0}" min="0"></div>
+      <div class="field"><div class="field-lbl">Starts At *</div><input id="tn_startsAt" type="datetime-local" class="search-input" style="width:100%;max-width:none" value="${startsVal}"></div>
+      <div class="field"><div class="field-lbl">Ends At *</div><input id="tn_endsAt" type="datetime-local" class="search-input" style="width:100%;max-width:none" value="${endsVal}"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveTournament(${isEdit?`'${t._id}'`:'null'})">${isEdit?'Update Tournament':'Create Tournament'}</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+function editTournament(id){
+  const t = tournamentsCache[id];
+  if (!t) return alert('Tournament not found');
+  openTournamentForm(t);
+}
+
+async function saveTournament(id){
+  const title = document.getElementById('tn_title').value.trim();
+  const startsAt = document.getElementById('tn_startsAt').value;
+  const endsAt = document.getElementById('tn_endsAt').value;
+  if (!title) return alert('Title is required');
+  if (!startsAt || !endsAt) return alert('Start and end dates are required');
+  if (new Date(endsAt) <= new Date(startsAt)) return alert('End date must be after start date');
+  const body = {
+    title,
+    description: document.getElementById('tn_description').value.trim(),
+    icon: document.getElementById('tn_icon').value.trim() || '🏆',
+    prize: +document.getElementById('tn_prize').value || 0,
+    entryFee: +document.getElementById('tn_entryFee').value || 0,
+    maxParticipants: +document.getElementById('tn_maxParticipants').value || 1000,
+    startsAt,
+    endsAt,
+  };
+  const res = id
+    ? await api('/api/admin/tournaments/' + id, { method: 'PUT', body })
+    : await api('/api/admin/tournaments', { method: 'POST', body });
+  if (res?.success) {
+    closeModal();
+    renderTournaments();
+  } else {
+    alert('Failed: ' + (res?.message || 'Unknown error'));
+  }
+}
+
+async function deleteTournament(id, title){
+  if (!confirm('Delete tournament "' + title + '"?\n\nAll participants and progress will be lost.')) return;
+  const res = await api('/api/admin/tournaments/'+id, {method:'DELETE'});
+  if (res?.success) renderTournaments();
+}
+
+// SIGNALS
+async function renderSignals(){
+  const data = await api('/api/signals?limit=50');
+  const s = data?.signals || [];
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">Trading Signals</div><div class="page-subtitle">${s.length} signals — auto-generated every 45s</div></div></div>
+    ${s.length===0 ? '<div class="empty"><div class="empty-icon">📡</div>Generating signals... wait ~45s</div>' : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Pair</th><th>Direction</th><th>Strength</th><th>Confidence</th><th>Reason</th><th>Expiry</th><th>Created</th></tr></thead>
+      <tbody>${s.map(x=>`
+        <tr>
+          <td class="mono" style="font-weight:700">${x.pair}</td>
+          <td><span class="badge ${x.direction==='HIGHER'?'b-green':'b-red'}">${x.direction==='HIGHER'?'↑':'↓'} ${x.direction}</span></td>
+          <td><span class="badge ${x.strength==='Strong'?'b-green':x.strength==='Weak'?'b-red':'b-yellow'}">${x.strength}</span></td>
+          <td><div style="display:flex;align-items:center;gap:6px"><span class="mono">${x.confidence}%</span><div style="width:60px;height:4px;background:#1a2035;border-radius:2px"><div style="height:100%;background:#00ff9d;width:${x.confidence}%;border-radius:2px"></div></div></div></td>
+          <td style="font-size:11px">${x.reason}</td>
+          <td class="mono" style="font-size:11px">${x.expiry}</td>
+          <td style="font-size:10px;color:#7a85a0">${timeAgo(x.createdAt)}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+  refreshIv = setInterval(()=>{ if(currentPage==='signals') renderSignals(); }, 15000);
+}
+
+// ============== AFFILIATES ==============
+let affSearch = '';
+let affCache = {};
+
+let affSubTab = 'affiliates';
+async function renderAffiliatesPage(){
+  const tabBtns = `<div style="display:flex;gap:8px;margin-bottom:20px;">
+    <button class="btn ${affSubTab==='affiliates'?'btn-primary':''}" onclick="affSubTab='affiliates';renderAffiliatesPage()" style="padding:10px 24px;font-size:13px;font-weight:600;">🤝 Affiliates</button>
+    <button class="btn ${affSubTab==='aff-withdrawals'?'btn-primary':''}" onclick="affSubTab='aff-withdrawals';renderAffiliatesPage()" style="padding:10px 24px;font-size:13px;font-weight:600;">💳 Aff. Withdrawals</button>
+    <button class="btn ${affSubTab==='promocodes'?'btn-primary':''}" onclick="affSubTab='promocodes';renderAffiliatesPage()" style="padding:10px 24px;font-size:13px;font-weight:600;">🏷️ Promo Codes</button>
+  </div>`;
+  if(affSubTab==='affiliates'){
+    await renderAffiliates();
+    document.getElementById('pageContent').innerHTML = tabBtns + document.getElementById('pageContent').innerHTML;
+  } else if(affSubTab==='aff-withdrawals'){
+    await renderAffiliateWithdrawals();
+    document.getElementById('pageContent').innerHTML = tabBtns + document.getElementById('pageContent').innerHTML;
+  } else if(affSubTab==='promocodes'){
+    await renderPromoCodes();
+    document.getElementById('pageContent').innerHTML = tabBtns + document.getElementById('pageContent').innerHTML;
+  }
+}
+
+async function renderAffiliates(){
+  const [statsRes, listRes] = await Promise.all([
+    api('/api/admin/affiliates/stats'),
+    api('/api/admin/affiliates?search=' + encodeURIComponent(affSearch))
+  ]);
+  const s = statsRes?.stats || {};
+  const partners = listRes?.partners || [];
+  partners.forEach(p => affCache[p._id] = p);
+
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">🤝 Affiliate Management</div><div class="page-subtitle">${s.totalPartners || 0} partners registered</div></div></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-lbl">Total Partners</div><div class="stat-val">${s.totalPartners || 0}</div><div class="stat-chg">${s.activePartners || 0} active</div></div>
+      <div class="stat"><div class="stat-lbl">Total Referrals</div><div class="stat-val">${s.totalReferrals || 0}</div><div class="stat-chg">${s.activeReferrals || 0} active</div></div>
+      <div class="stat"><div class="stat-lbl">Commissions Paid</div><div class="stat-val c-green">${fmtMoney(s.totalCommissionsPaid || 0)}</div></div>
+      <div class="stat"><div class="stat-lbl">Pending Withdrawals</div><div class="stat-val c-red">${fmtMoney(s.pendingWithdrawals || 0)}</div><div class="stat-chg">${s.pendingWithdrawalCount || 0} requests</div></div>
+      <div class="stat"><div class="stat-lbl">Total Withdrawn</div><div class="stat-val">${fmtMoney(s.totalWithdrawn || 0)}</div></div>
+    </div>
+    <div class="searchbar">
+      <input class="search-input" placeholder="Search partners by name, email, ID..." value="${affSearch}" oninput="affSearch=this.value" onkeydown="if(event.key==='Enter')renderAffiliates()">
+      <button class="btn" onclick="renderAffiliates()">🔍 Search</button>
+    </div>
+    ${partners.length === 0 ? '<div class="empty"><div class="empty-icon">🤝</div>No partners found</div>' : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Partner</th><th>ID</th><th>Tier</th><th>Referrals</th><th>Sub-Aff</th><th>Commission</th><th>Balance</th><th>Status</th><th>Joined</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody>${partners.map(p => `
+        <tr>
+          <td><div class="user-cell"><div class="avatar">${getInitials(p.name)}</div><div><div class="user-name">${p.name}</div><div class="user-email">${p.email}</div></div></div></td>
+          <td class="mono" style="font-size:11px">${p.partnerId}</td>
+          <td><span class="badge ${p.tier==='Platinum'?'b-blue':p.tier==='Gold'?'b-yellow':'b-green'}">${p.tier}</span></td>
+          <td class="mono">${p.referralCount || 0}</td>
+          <td class="mono">${p.subAffiliateCount || 0}</td>
+          <td class="mono c-green">${fmtMoney(p.totalCommission || 0)}</td>
+          <td class="mono">${fmtMoney(p.availableBalance || 0)}</td>
+          <td><span class="badge ${p.isActive?'b-green':'b-red'}">${p.isActive?'Active':'Inactive'}</span></td>
+          <td style="font-size:11px;color:#7a85a0">${timeAgo(p.createdAt)}</td>
+          <td><div class="row-actions">
+            <button class="icon-btn" title="View" onclick="viewAffiliate('${p._id}')">👁</button>
+            <button class="icon-btn" title="Edit" onclick="editAffiliate('${p._id}')">✏️</button>
+            <button class="icon-btn" title="Delete" onclick="deleteAffiliate('${p._id}','${p.name.replace(/'/g,'')}')">🗑</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+}
+
+async function viewAffiliate(id){
+  const res = await api('/api/admin/affiliates/' + id);
+  if(!res?.success) return alert('Failed to load');
+  const p = res.partner;
+  const refs = res.referrals || [];
+  const comms = res.commissions || [];
+  const wds = res.withdrawals || [];
+  const subs = res.subAffiliates || [];
+
+  document.getElementById('modalTitle').textContent = p.name + ' — ' + p.partnerId;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="field"><div class="field-lbl">Email</div><div class="field-val">${p.email}</div></div>
+      <div class="field"><div class="field-lbl">Phone</div><div class="field-val">${p.phone || '—'}</div></div>
+      <div class="field"><div class="field-lbl">Tier</div><div class="field-val"><span class="badge ${p.tier==='Platinum'?'b-blue':p.tier==='Gold'?'b-yellow':'b-green'}">${p.tier}</span></div></div>
+      <div class="field"><div class="field-lbl">Status</div><div class="field-val"><span class="badge ${p.isActive?'b-green':'b-red'}">${p.isActive?'Active':'Inactive'}</span></div></div>
+      <div class="field"><div class="field-lbl">Available Balance</div><div class="field-val c-green">${fmtMoney(p.availableBalance || 0)}</div></div>
+      <div class="field"><div class="field-lbl">Total Withdrawn</div><div class="field-val">${fmtMoney(p.totalWithdrawn || 0)}</div></div>
+      <div class="field"><div class="field-lbl">Total Clicks</div><div class="field-val">${p.totalClicks || 0}</div></div>
+      <div class="field"><div class="field-lbl">Joined</div><div class="field-val">${fmtDate(p.createdAt)}</div></div>
+      <div class="field"><div class="field-lbl">Payment Method</div><div class="field-val">${p.paymentMethod || '—'}</div></div>
+      <div class="field"><div class="field-lbl">Account</div><div class="field-val">${p.accountNumber || '—'}</div></div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div style="font-size:12px;font-weight:700;color:#7a85a0;margin-bottom:8px">REFERRALS (${refs.length})</div>
+      ${refs.length === 0 ? '<div style="font-size:12px;color:#4a5570;padding:8px">No referrals yet</div>' : `
+      <div class="table-wrap" style="margin-bottom:16px"><table>
+        <thead><tr><th>Client</th><th>Email</th><th>Status</th><th>Deposits</th><th>Date</th></tr></thead>
+        <tbody>${refs.slice(0,10).map(r => `
+          <tr>
+            <td style="font-weight:600">${r.clientName}</td>
+            <td class="mono" style="font-size:11px">${r.clientEmail}</td>
+            <td><span class="badge ${r.status==='active'?'b-green':r.status==='pending'?'b-yellow':'b-red'}">${r.status}</span></td>
+            <td class="mono">${fmtMoney(r.totalDeposits || 0)}</td>
+            <td style="font-size:11px;color:#7a85a0">${fmtDate(r.createdAt)}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>`}
+    </div>
+
+    <div style="margin-top:16px">
+      <div style="font-size:12px;font-weight:700;color:#7a85a0;margin-bottom:8px">COMMISSIONS (${comms.length})</div>
+      ${comms.length === 0 ? '<div style="font-size:12px;color:#4a5570;padding:8px">No commissions yet</div>' : `
+      <div class="table-wrap" style="margin-bottom:16px"><table>
+        <thead><tr><th>Type</th><th>Amount</th><th>Rate</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>${comms.slice(0,10).map(c => `
+          <tr>
+            <td><span class="badge b-blue">${c.type}</span></td>
+            <td class="mono c-green">${fmtMoney(c.amount)}</td>
+            <td class="mono">${c.rate}%</td>
+            <td><span class="badge ${c.status==='paid'||c.status==='approved'?'b-green':'b-yellow'}">${c.status}</span></td>
+            <td style="font-size:11px;color:#7a85a0">${fmtDate(c.createdAt)}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>`}
+    </div>
+
+    <div style="margin-top:16px">
+      <div style="font-size:12px;font-weight:700;color:#7a85a0;margin-bottom:8px">SUB-AFFILIATES (${subs.length})</div>
+      ${subs.length === 0 ? '<div style="font-size:12px;color:#4a5570;padding:8px">No sub-affiliates</div>' : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>ID</th><th>Tier</th><th>Joined</th></tr></thead>
+        <tbody>${subs.map(s => `
+          <tr>
+            <td style="font-weight:600">${s.name}</td>
+            <td class="mono" style="font-size:11px">${s.partnerId}</td>
+            <td><span class="badge b-yellow">${s.tier}</span></td>
+            <td style="font-size:11px;color:#7a85a0">${fmtDate(s.createdAt)}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>`}
+    </div>
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+function editAffiliate(id){
+  const p = affCache[id];
+  if(!p) return alert('Partner not found');
+  document.getElementById('modalTitle').textContent = 'Edit — ' + p.name;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="field"><div class="field-lbl">Partner</div><div class="field-val">${p.name} (${p.partnerId})</div></div>
+      <div class="field"><div class="field-lbl">Email</div><div class="field-val">${p.email}</div></div>
+      <div class="field"><div class="field-lbl">Tier</div>
+        <select id="aff_tier" class="search-input" style="width:100%;max-width:none">
+          <option value="Silver" ${p.tier==='Silver'?'selected':''}>Silver (3%)</option>
+          <option value="Gold" ${p.tier==='Gold'?'selected':''}>Gold (5%)</option>
+          <option value="Platinum" ${p.tier==='Platinum'?'selected':''}>Platinum (8%)</option>
+        </select>
+      </div>
+      <div class="field"><div class="field-lbl">Status</div>
+        <select id="aff_status" class="search-input" style="width:100%;max-width:none">
+          <option value="true" ${p.isActive?'selected':''}>Active</option>
+          <option value="false" ${!p.isActive?'selected':''}>Inactive</option>
+        </select>
+      </div>
+      <div class="field"><div class="field-lbl">Available Balance ($)</div><input id="aff_balance" type="number" step="0.01" class="search-input" style="width:100%;max-width:none" value="${p.availableBalance||0}"></div>
+      <div class="field"><div class="field-lbl">Total Balance ($)</div><input id="aff_totalbal" type="number" step="0.01" class="search-input" style="width:100%;max-width:none" value="${p.totalBalance||0}"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveAffiliate('${p._id}')">💾 Save Changes</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+    <div style="border-top:1px solid #1c2238;margin-top:20px;padding-top:16px">
+      <div style="font-size:12px;font-weight:700;color:#7a85a0;margin-bottom:10px">ADD COMMISSION MANUALLY</div>
+      <div class="detail-grid">
+        <div class="field"><div class="field-lbl">Amount ($)</div><input id="comm_amount" type="number" step="0.01" class="search-input" style="width:100%;max-width:none" value="0" min="0"></div>
+        <div class="field"><div class="field-lbl">Type</div>
+          <select id="comm_type" class="search-input" style="width:100%;max-width:none">
+            <option value="RevShare">RevShare</option><option value="CPA">CPA</option><option value="SubAffiliate">SubAffiliate</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:span 2"><div class="field-lbl">Description</div><input id="comm_desc" class="search-input" style="width:100%;max-width:none" placeholder="e.g., Bonus, Manual adjustment"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="addCommission('${p._id}')">➕ Add Commission</button>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function saveAffiliate(id){
+  const res = await api('/api/admin/affiliates/' + id, {
+    method: 'PUT',
+    body: {
+      tier: document.getElementById('aff_tier').value,
+      isActive: document.getElementById('aff_status').value === 'true',
+      availableBalance: +document.getElementById('aff_balance').value,
+      totalBalance: +document.getElementById('aff_totalbal').value,
+    }
+  });
+  if(res?.success){ closeModal(); renderAffiliates(); }
+  else alert('Failed: ' + (res?.message || 'Unknown'));
+}
+
+async function addCommission(partnerId){
+  const amount = +document.getElementById('comm_amount').value;
+  if(!amount || amount <= 0) return alert('Enter valid amount');
+  const res = await api('/api/admin/affiliates-commission', {
+    method: 'POST',
+    body: {
+      partnerId,
+      amount,
+      type: document.getElementById('comm_type').value,
+      description: document.getElementById('comm_desc').value.trim(),
+    }
+  });
+  if(res?.success){
+    alert('Commission added: $' + amount);
+    closeModal();
+    renderAffiliates();
+  } else {
+    alert('Failed: ' + (res?.message || 'Unknown'));
+  }
+}
+
+async function deleteAffiliate(id, name){
+  if(!confirm('Delete partner "' + name + '"?\n\nAll referrals, commissions, and withdrawals will be deleted!')) return;
+  const res = await api('/api/admin/affiliates/' + id, {method:'DELETE'});
+  if(res?.success) renderAffiliates();
+  else alert('Failed');
+}
+
+// ============== AFFILIATE WITHDRAWALS ==============
+
+async function renderAffiliateWithdrawals(){
+  const res = await api('/api/admin/affiliates-withdrawals');
+  const wds = res?.withdrawals || [];
+
+  const pending = wds.filter(w => w.status === 'pending');
+  const others = wds.filter(w => w.status !== 'pending');
+
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">💳 Affiliate Withdrawals</div><div class="page-subtitle">${pending.length} pending requests</div></div></div>
+
+    ${pending.length > 0 ? `
+    <div style="font-size:13px;font-weight:700;color:#f59e0b;margin-bottom:10px">⏳ PENDING REQUESTS</div>
+    <div class="table-wrap" style="margin-bottom:24px"><table>
+      <thead><tr><th>ID</th><th>Partner</th><th>Amount</th><th>Method</th><th>Account</th><th>Requested</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody>${pending.map(w => `
+        <tr>
+          <td class="mono" style="font-size:11px">${w.withdrawalId}</td>
+          <td><div class="user-cell"><div class="avatar">${w.partner ? getInitials(w.partner.name) : '??'}</div><div><div class="user-name">${w.partner?.name || '—'}</div><div class="user-email">${w.partner?.email || ''}</div></div></div></td>
+          <td class="mono c-green" style="font-weight:700;font-size:15px">${fmtMoney(w.amount)}</td>
+          <td><span class="badge b-blue">${w.method}</span></td>
+          <td class="mono" style="font-size:11px">${w.accountNumber || '—'}</td>
+          <td style="font-size:11px;color:#7a85a0">${timeAgo(w.createdAt)}</td>
+          <td><div class="row-actions">
+            <button class="btn btn-sm btn-primary" onclick="processAffWd('${w._id}','completed')">✅ Approve</button>
+            <button class="btn btn-sm btn-danger" onclick="processAffWd('${w._id}','rejected')">❌ Reject</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+    </table></div>` : '<div style="font-size:12px;color:#4a5570;margin-bottom:24px;padding:16px;background:#111626;border-radius:8px;border:1px solid #1c2238">✅ No pending withdrawal requests</div>'}
+
+    ${others.length > 0 ? `
+    <div style="font-size:13px;font-weight:700;color:#7a85a0;margin-bottom:10px">HISTORY</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Partner</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>${others.map(w => `
+        <tr>
+          <td class="mono" style="font-size:11px">${w.withdrawalId}</td>
+          <td style="font-weight:600">${w.partner?.name || '—'}</td>
+          <td class="mono">${fmtMoney(w.amount)}</td>
+          <td>${w.method}</td>
+          <td><span class="badge ${w.status==='completed'?'b-green':'b-red'}">${w.status}</span></td>
+          <td style="font-size:11px;color:#7a85a0">${fmtDate(w.createdAt)}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>` : ''}
+  `;
+}
+
+async function processAffWd(id, status){
+  let body = { status };
+  if(status === 'rejected'){
+    const reason = prompt('Rejection reason (optional):');
+    body.rejectionReason = reason || '';
+  }
+  if(status === 'completed'){
+    const ref = prompt('Transaction reference (optional):');
+    body.transactionRef = ref || '';
+  }
+  const res = await api('/api/admin/affiliates-withdrawals/' + id, { method: 'PUT', body });
+  if(res?.success) renderAffiliateWithdrawals();
+  else alert('Failed: ' + (res?.message || 'Unknown'));
+}
+
+// ============== PROMO CODES ==============
+
+async function renderPromoCodes(){
+  const res = await api('/api/admin/promocodes');
+  const codes = res?.codes || [];
+  const pending = codes.filter(c => c.status === 'pending');
+  const others = codes.filter(c => c.status !== 'pending');
+
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">🏷️ Promo Codes</div><div class="page-subtitle">${codes.length} total codes — ${pending.length} pending approval</div></div></div>
+
+    ${pending.length > 0 ? `
+    <div style="font-size:13px;font-weight:700;color:#f59e0b;margin-bottom:10px">⏳ PENDING APPROVAL</div>
+    <div class="table-wrap" style="margin-bottom:24px"><table>
+      <thead><tr><th>Code</th><th>Partner</th><th>Requested</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody>${pending.map(c => `
+        <tr>
+          <td style="font-family:monospace;font-size:16px;font-weight:700;letter-spacing:2px;color:#60a5fa">${c.code}</td>
+          <td><div class="user-cell"><div class="avatar">${c.partner ? getInitials(c.partner.name) : '??'}</div><div><div class="user-name">${c.partner?.name || '—'}</div><div class="user-email">${c.partner?.email || ''} • ${c.partner?.partnerId || ''}</div></div></div></td>
+          <td style="font-size:11px;color:#7a85a0">${timeAgo(c.createdAt)}</td>
+          <td><div class="row-actions">
+            <button class="btn btn-sm btn-primary" onclick="updatePromo('${c._id}','approved')">✅ Approve</button>
+            <button class="btn btn-sm btn-danger" onclick="updatePromo('${c._id}','rejected')">❌ Reject</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+    </table></div>` : '<div style="font-size:12px;color:#4a5570;margin-bottom:24px;padding:16px;background:#111626;border-radius:8px;border:1px solid #1c2238">✅ No pending promo code requests</div>'}
+
+    ${others.length > 0 ? `
+    <div style="font-size:13px;font-weight:700;color:#7a85a0;margin-bottom:10px">ALL PROMO CODES</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Code</th><th>Partner</th><th>Status</th><th>Usage</th><th>Created</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody>${others.map(c => `
+        <tr>
+          <td style="font-family:monospace;font-size:14px;font-weight:700;letter-spacing:2px">${c.code}</td>
+          <td style="font-weight:600">${c.partner?.name || '—'}</td>
+          <td><span class="badge ${c.status==='approved'?'b-green':'b-red'}">${c.status}</span></td>
+          <td class="mono">${c.usageCount || 0} uses</td>
+          <td style="font-size:11px;color:#7a85a0">${fmtDate(c.createdAt)}</td>
+          <td><div class="row-actions">
+            ${c.status==='approved'?`<button class="btn btn-sm" onclick="updatePromo('${c._id}','rejected')">🚫 Disable</button>`:`<button class="btn btn-sm" onclick="updatePromo('${c._id}','approved')">✅ Enable</button>`}
+            <button class="icon-btn" title="Delete" onclick="deletePromo('${c._id}','${c.code}')">🗑</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+    </table></div>` : ''}
+  `;
+}
+
+async function updatePromo(id, status){
+  const res = await api('/api/admin/promocodes/' + id, { method: 'PUT', body: { status } });
+  if(res?.success) renderPromoCodes();
+  else alert('Failed: ' + (res?.message || 'Unknown'));
+}
+
+async function deletePromo(id, code){
+  if(!confirm('Delete promo code "' + code + '"?')) return;
+  const res = await api('/api/admin/promocodes/' + id, { method: 'DELETE' });
+  if(res?.success) renderPromoCodes();
+}
+
+// ═══ DEPOSIT PROMO CODES (Broker's own) ═══
+async function renderDepositPromos(){
+  const res = await api('/api/admin/deposit-promos');
+  const codes = res?.promos || [];
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">🎁 Deposit Promo Codes</div><div class="page-subtitle">${codes.length} promo codes</div></div>
+    <button class="btn btn-primary" onclick="showCreateDepositPromo()">+ Create Promo Code</button></div>
+
+    <div id="dpCreateForm" style="display:none;background:#111626;border:1px solid #1c2238;border-radius:12px;padding:20px;margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:16px">Create New Promo Code</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+        <div><label style="font-size:10px;color:#7a85a0;text-transform:uppercase;font-weight:600">Code</label><input id="dpCode" placeholder="e.g. WELCOME50" style="width:100%;padding:10px;background:#0c1120;border:1px solid #1c2238;border-radius:6px;color:#fff;font-family:monospace;font-size:14px;text-transform:uppercase;box-sizing:border-box"></div>
+        <div><label style="font-size:10px;color:#7a85a0;text-transform:uppercase;font-weight:600">Type</label><select id="dpType" style="width:100%;padding:10px;background:#0c1120;border:1px solid #1c2238;border-radius:6px;color:#fff;box-sizing:border-box"><option value="percentage">Percentage (%)</option><option value="fixed">Fixed Amount ($)</option></select></div>
+        <div><label style="font-size:10px;color:#7a85a0;text-transform:uppercase;font-weight:600">Value</label><input id="dpValue" type="number" placeholder="e.g. 50" style="width:100%;padding:10px;background:#0c1120;border:1px solid #1c2238;border-radius:6px;color:#fff;box-sizing:border-box"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+        <div><label style="font-size:10px;color:#7a85a0;text-transform:uppercase;font-weight:600">Min Deposit ($)</label><input id="dpMinDeposit" type="number" placeholder="10" value="10" style="width:100%;padding:10px;background:#0c1120;border:1px solid #1c2238;border-radius:6px;color:#fff;box-sizing:border-box"></div>
+        <div><label style="font-size:10px;color:#7a85a0;text-transform:uppercase;font-weight:600">Max Uses (0=unlimited)</label><input id="dpMaxUses" type="number" placeholder="0" value="0" style="width:100%;padding:10px;background:#0c1120;border:1px solid #1c2238;border-radius:6px;color:#fff;box-sizing:border-box"></div>
+        <div><label style="font-size:10px;color:#7a85a0;text-transform:uppercase;font-weight:600">Expires</label><input id="dpExpiry" type="date" style="width:100%;padding:10px;background:#0c1120;border:1px solid #1c2238;border-radius:6px;color:#fff;box-sizing:border-box"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="createDepositPromo()">Create</button>
+        <button class="btn" onclick="document.getElementById('dpCreateForm').style.display='none'">Cancel</button>
+      </div>
+    </div>
+
+    ${codes.length===0 ? '<div class="empty"><div class="empty-icon">🎁</div>No deposit promo codes yet<br><small>Create your first promo code for deposit bonuses</small></div>' : `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Code</th><th>Type</th><th>Bonus</th><th>Min Deposit</th><th>Usage</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${codes.map(c=>`
+        <tr>
+          <td style="font-family:monospace;font-size:15px;font-weight:700;letter-spacing:2px;color:#60a5fa">${c.code}</td>
+          <td>${c.type==='percentage'?'📊 Percentage':'💵 Fixed'}</td>
+          <td class="mono" style="font-weight:700;color:#22c55e">${c.type==='percentage'?c.value+'%':'$'+c.value}</td>
+          <td class="mono">$${c.minDeposit||10}</td>
+          <td class="mono">${c.usedCount||0}${c.maxUses>0?' / '+c.maxUses:' / ∞'}</td>
+          <td style="font-size:11px;color:#7a85a0">${c.expiresAt?fmtDate(c.expiresAt):'Never'}</td>
+          <td><span class="badge ${c.active?'b-green':'b-red'}">${c.active?'Active':'Disabled'}</span></td>
+          <td><div class="row-actions">
+            <button class="btn btn-sm" onclick="toggleDepositPromo('${c._id}',${!c.active})">${c.active?'🚫 Disable':'✅ Enable'}</button>
+            <button class="icon-btn" onclick="deleteDepositPromo('${c._id}','${c.code}')">🗑</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`}
+  `;
+}
+
+function showCreateDepositPromo(){ document.getElementById('dpCreateForm').style.display='block'; }
+
+async function createDepositPromo(){
+  const code = document.getElementById('dpCode').value.trim().toUpperCase();
+  const type = document.getElementById('dpType').value;
+  const value = parseFloat(document.getElementById('dpValue').value);
+  const minDeposit = parseFloat(document.getElementById('dpMinDeposit').value) || 10;
+  const maxUses = parseInt(document.getElementById('dpMaxUses').value) || 0;
+  const expiresAt = document.getElementById('dpExpiry').value || null;
+  if(!code||!value){ alert('Code and value are required'); return; }
+  const res = await api('/api/admin/deposit-promos', { method:'POST', body:{ code, type, value, minDeposit, maxUses, expiresAt } });
+  if(res?.success){ renderDepositPromos(); }
+  else alert('Failed: ' + (res?.message || 'Unknown error'));
+}
+
+async function toggleDepositPromo(id, active){
+  const res = await api('/api/admin/deposit-promos/' + id, { method:'PUT', body:{ active } });
+  if(res?.success) renderDepositPromos();
+}
+
+async function deleteDepositPromo(id, code){
+  if(!confirm('Delete promo code "' + code + '"?')) return;
+  const res = await api('/api/admin/deposit-promos/' + id, { method:'DELETE' });
+  if(res?.success) renderDepositPromos();
+}
+
+// SUPPORT TICKETS
+let supportFilter = 'all';
+let supportPage = 1;
+
+async function renderSupport(){
+  const statusParam = supportFilter === 'all' ? '' : `&status=${supportFilter}`;
+  const data = await api(`/api/admin/support/all?page=${supportPage}&limit=20${statusParam}`);
+  const tickets = data?.tickets || [];
+  const total = data?.total || 0;
+  const pages = data?.pages || 1;
+
+  const statusColors = {open:'#3b82f6',in_progress:'#eab308',awaiting_reply:'#22c55e',resolved:'#7a85a0',closed:'#4a5570'};
+  const statusLabels = {open:'Open',in_progress:'In Progress',awaiting_reply:'Awaiting Reply',resolved:'Resolved',closed:'Closed'};
+  const prioColors = {low:'#4a5570',medium:'#3b82f6',high:'#eab308',urgent:'#ef4444'};
+
+  const filters = ['all','open','in_progress','awaiting_reply','resolved','closed'];
+
+  document.getElementById('pageContent').innerHTML = `
+    <div class="page-header"><div><div class="page-title">🎫 Support Tickets</div><div class="page-subtitle">${total} total tickets</div></div></div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+      ${filters.map(f=>`<button onclick="supportFilter='${f}';supportPage=1;renderSupport()" style="padding:6px 14px;border-radius:6px;border:1px solid ${supportFilter===f?'#00ff9d33':'#1c2238'};background:${supportFilter===f?'#00ff9d15':'transparent'};color:${supportFilter===f?'#00ff9d':'#7a85a0'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${f==='all'?'All':statusLabels[f]||f}</button>`).join('')}
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Ticket ID</th><th>User</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Last Reply</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${tickets.length===0?'<tr><td colspan="8" style="text-align:center;padding:30px;color:#7a85a0">No tickets found</td></tr>':''}
+        ${tickets.map(t=>{
+          const sc = statusColors[t.status]||'#7a85a0';
+          const pc = prioColors[t.priority]||'#7a85a0';
+          const timeAgo = getTimeAgo(t.lastReplyAt||t.updatedAt||t.createdAt);
+          return `<tr>
+            <td><span style="font-weight:600;color:#e8ecf4">${t.ticketId||'--'}</span></td>
+            <td><div style="font-size:12px;color:#e8ecf4;font-weight:500">${t.userName||'Unknown'}</div><div style="font-size:10px;color:#7a85a0">${t.userEmail||''}</div></td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject||'--'}</td>
+            <td><span style="font-size:10px;padding:2px 8px;border-radius:4px;background:#1a2035;color:#7a85a0">${t.category||'other'}</span></td>
+            <td><span style="font-size:10px;font-weight:600;color:${pc}">${(t.priority||'medium').toUpperCase()}</span></td>
+            <td><span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;background:${sc}22;color:${sc}">${statusLabels[t.status]||t.status}</span></td>
+            <td style="font-size:11px;color:#7a85a0">${t.lastReplyBy==='user'?'👤':'🛡️'} ${timeAgo}</td>
+            <td><button onclick="openSupportTicket('${t._id}')" style="padding:5px 12px;border-radius:5px;border:1px solid #00ff9d33;background:#00ff9d15;color:#00ff9d;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit">View</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+    ${pages>1?`<div style="display:flex;gap:6px;margin-top:12px;justify-content:center">${Array.from({length:pages},(_,i)=>`<button onclick="supportPage=${i+1};renderSupport()" style="padding:4px 10px;border-radius:4px;border:1px solid ${supportPage===i+1?'#00ff9d33':'#1c2238'};background:${supportPage===i+1?'#00ff9d15':'transparent'};color:${supportPage===i+1?'#00ff9d':'#7a85a0'};font-size:11px;cursor:pointer;font-family:inherit">${i+1}</button>`).join('')}</div>`:''}
+    <div id="ticketDetailModal" style="display:none"></div>
+  `;
+}
+
+function getTimeAgo(d){
+  if(!d) return '--';
+  const ms = Date.now() - new Date(d).getTime();
+  const m = Math.floor(ms/60000);
+  if(m<1) return 'Just now';
+  if(m<60) return m+'m ago';
+  const h = Math.floor(m/60);
+  if(h<24) return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+
+async function openSupportTicket(id){
+  const data = await api(`/api/admin/support/all?limit=100`);
+  const tickets = data?.tickets || [];
+  const t = tickets.find(tk=>tk._id===id);
+  if(!t){ alert('Ticket not found'); return; }
+
+  const statusColors = {open:'#3b82f6',in_progress:'#eab308',awaiting_reply:'#22c55e',resolved:'#7a85a0',closed:'#4a5570'};
+  const statusLabels = {open:'Open',in_progress:'In Progress',awaiting_reply:'Awaiting Reply',resolved:'Resolved',closed:'Closed'};
+  const prioColors = {low:'#4a5570',medium:'#3b82f6',high:'#eab308',urgent:'#ef4444'};
+  const statuses = ['open','in_progress','awaiting_reply','resolved','closed'];
+  const priorities = ['low','medium','high','urgent'];
+
+  const msgs = (t.messages||[]).map(msg=>`
+    <div style="display:flex;flex-direction:column;align-items:${msg.sender==='admin'?'flex-end':'flex-start'};margin-bottom:10px">
+      <div style="max-width:80%;padding:10px 14px;border-radius:${msg.sender==='admin'?'12px 12px 2px 12px':'12px 12px 12px 2px'};background:${msg.sender==='admin'?'#00ff9d18':'#1a2035'};border:1px solid ${msg.sender==='admin'?'#00ff9d33':'#1c2238'}">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <span style="font-size:10px;font-weight:600;color:${msg.sender==='admin'?'#00ff9d':'#3b82f6'}">${msg.sender==='admin'?'🛡️ Admin':'👤 '+( msg.senderName||'User')}</span>
+          <span style="font-size:9px;color:#4a5570">${getTimeAgo(msg.createdAt)}</span>
+        </div>
+        <div style="font-size:12px;color:#e8ecf4;line-height:1.5;white-space:pre-wrap">${msg.text}</div>
+        ${(msg.attachments||[]).length>0?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${msg.attachments.map((a,j)=>`<a href="${a}" target="_blank" style="font-size:9px;padding:3px 8px;border-radius:4px;background:#0b0e18;border:1px solid #1c2238;color:#00ff9d;text-decoration:none">📎 File ${j+1}</a>`).join('')}</div>`:''}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('pageContent').innerHTML = `
+    <div style="margin-bottom:16px">
+      <button onclick="renderSupport()" style="display:flex;align-items:center;gap:4px;background:none;border:none;color:#7a85a0;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;padding:0">
+        <span style="font-size:16px">←</span> Back to tickets
+      </button>
+    </div>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <!-- Left: Messages -->
+      <div style="flex:1;min-width:300px">
+        <div style="background:#151c2e;border:1px solid #1c2238;border-radius:12px;overflow:hidden">
+          <!-- Header -->
+          <div style="padding:16px 20px;border-bottom:1px solid #1c2238">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:15px;font-weight:700;color:#e8ecf4">${t.subject}</span>
+              <span style="font-size:10px;font-weight:600;padding:3px 10px;border-radius:5px;background:${statusColors[t.status]}22;color:${statusColors[t.status]}">${statusLabels[t.status]}</span>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span style="font-size:10px;color:#7a85a0">${t.ticketId}</span>
+              <span style="font-size:10px;padding:2px 6px;border-radius:3px;background:#1a2035;color:#7a85a0">${t.category||'other'}</span>
+              <span style="font-size:10px;font-weight:600;color:${prioColors[t.priority]}">${(t.priority||'medium').toUpperCase()}</span>
+              <span style="font-size:10px;color:#4a5570">by ${t.userName||'Unknown'} (${t.userEmail||''})</span>
+            </div>
+          </div>
+
+          <!-- Messages -->
+          <div style="padding:16px 20px;max-height:400px;overflow-y:auto" id="ticketMessages">
+            ${msgs||'<div style="text-align:center;padding:20px;color:#4a5570;font-size:12px">No messages</div>'}
+          </div>
+
+          <!-- Reply box -->
+          ${t.status!=='closed'?`
+          <div style="padding:12px 20px;border-top:1px solid #1c2238">
+            <textarea id="adminReplyText" placeholder="Type your reply..." style="width:100%;min-height:60px;background:#1a2035;border:1px solid #1c2238;border-radius:8px;padding:10px 12px;color:#e8ecf4;font-size:12px;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box" rows="3"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button onclick="sendAdminReply('${t._id}')" style="padding:8px 20px;border-radius:6px;border:none;background:linear-gradient(135deg,#00ff9d,#00cc7d);color:#0b0e18;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Send Reply</button>
+            </div>
+          </div>
+          `:`<div style="padding:12px 20px;border-top:1px solid #1c2238;text-align:center;color:#4a5570;font-size:11px">Ticket closed</div>`}
+        </div>
+      </div>
+
+      <!-- Right: Controls -->
+      <div style="width:260px;flex-shrink:0">
+        <div style="background:#151c2e;border:1px solid #1c2238;border-radius:12px;padding:16px 18px">
+          <div style="font-size:12px;font-weight:700;color:#e8ecf4;margin-bottom:14px">Ticket Controls</div>
+
+          <div style="margin-bottom:14px">
+            <div style="font-size:10px;color:#7a85a0;font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Status</div>
+            <select id="ticketStatus" onchange="updateTicketField('${t._id}','status',this.value)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2238;background:#1a2035;color:#e8ecf4;font-size:12px;font-family:inherit;outline:none;cursor:pointer">
+              ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
+            </select>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <div style="font-size:10px;color:#7a85a0;font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Priority</div>
+            <select id="ticketPriority" onchange="updateTicketField('${t._id}','priority',this.value)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1c2238;background:#1a2035;color:#e8ecf4;font-size:12px;font-family:inherit;outline:none;cursor:pointer">
+              ${priorities.map(p=>`<option value="${p}" ${t.priority===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <div style="font-size:10px;color:#7a85a0;font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em">Info</div>
+            <div style="font-size:11px;color:#7a85a0;line-height:1.8">
+              <div>Created: ${new Date(t.createdAt).toLocaleString()}</div>
+              <div>Updated: ${new Date(t.updatedAt).toLocaleString()}</div>
+              <div>Messages: ${(t.messages||[]).length}</div>
+              <div>Last reply by: ${t.lastReplyBy==='admin'?'🛡️ Admin':'👤 User'}</div>
+            </div>
+          </div>
+
+          ${t.status!=='closed'?`<button onclick="updateTicketField('${t._id}','status','closed')" style="width:100%;padding:8px 0;border-radius:6px;border:1px solid #ef444444;background:#ef444415;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px">Close Ticket</button>`:''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function sendAdminReply(ticketId){
+  const text = document.getElementById('adminReplyText')?.value?.trim();
+  if(!text){ alert('Please type a reply'); return; }
+  const res = await api('/api/admin/support/'+ticketId+'/reply', {
+    method: 'POST',
+    body: { message: text }
+  });
+  if(res?.success){
+    openSupportTicket(ticketId);
+  } else {
+    alert('Failed to send reply: '+(res?.error||'Unknown error'));
+  }
+}
+
+async function updateTicketField(ticketId, field, value){
+  const body = {};
+  body[field] = value;
+  const res = await api('/api/admin/support/'+ticketId, {
+    method: 'PATCH',
+    body: body
+  });
+  if(res?.success){
+    openSupportTicket(ticketId);
+  } else {
+    alert('Failed to update: '+(res?.error||'Unknown error'));
+  }
+}
+
+// INIT
+checkStatus();
+updateBadges();
+loadPage('dashboard');
+setInterval(checkStatus, 30000);
+setInterval(updateBadges, 60000);
+</script>
+</body>
+</html>

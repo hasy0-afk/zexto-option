@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zexto Admin — Login</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0a0e18;color:#e8ecf4;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+
+  /* Animated background grid */
+  body::before{content:'';position:fixed;inset:0;background:
+    linear-gradient(rgba(0,255,157,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,157,0.03) 1px, transparent 1px);
+    background-size:60px 60px;animation:gridMove 20s linear infinite;pointer-events:none;z-index:0}
+  @keyframes gridMove{0%{transform:translate(0,0)}100%{transform:translate(60px,60px)}}
+
+  /* Glow orbs */
+  .orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:0.15;pointer-events:none;z-index:0}
+  .orb-1{width:400px;height:400px;background:#00ff9d;top:-100px;left:-100px;animation:float1 8s ease-in-out infinite}
+  .orb-2{width:300px;height:300px;background:#00cc7d;bottom:-80px;right:-80px;animation:float2 10s ease-in-out infinite}
+  @keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,40px)}}
+  @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-30px)}}
+
+  .login-container{position:relative;z-index:1;width:400px;max-width:90vw}
+
+  .login-card{background:rgba(17,22,38,0.85);border:1px solid #1c2238;border-radius:16px;padding:40px 36px;backdrop-filter:blur(20px);box-shadow:0 0 60px rgba(0,255,157,0.05),0 20px 60px rgba(0,0,0,0.4)}
+
+  .logo-section{text-align:center;margin-bottom:32px}
+  .logo-icon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#00ff9d,#00cc7d);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;box-shadow:0 4px 24px rgba(0,255,157,0.25)}
+  .logo-title{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+  .logo-sub{font-size:12px;color:#4a5570;margin-top:4px;letter-spacing:1px;text-transform:uppercase;font-weight:600}
+
+  .form-group{margin-bottom:18px}
+  .form-label{display:block;font-size:11px;color:#7a85a0;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:6px}
+  .form-input{width:100%;background:#0b0e18;border:1px solid #1c2238;border-radius:10px;padding:12px 14px;color:#e8ecf4;font-size:14px;outline:none;font-family:inherit;transition:all 0.2s}
+  .form-input:focus{border-color:#00ff9d66;box-shadow:0 0 0 3px rgba(0,255,157,0.08)}
+  .form-input::placeholder{color:#3a4560}
+
+  .login-btn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#00ff9d,#00cc7d);color:#0a0e18;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;letter-spacing:0.3px;margin-top:6px}
+  .login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,255,157,0.3)}
+  .login-btn:active{transform:translateY(0)}
+  .login-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+  .error-msg{background:#ef444418;border:1px solid #ef444444;border-radius:8px;padding:10px 14px;font-size:12px;color:#ef4444;text-align:center;margin-bottom:16px;display:none;animation:shake 0.4s ease}
+  .error-msg.show{display:block}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  .footer{text-align:center;margin-top:20px;font-size:11px;color:#3a4560}
+  .footer .mono{font-family:'JetBrains Mono',monospace;color:#4a5570}
+
+  /* Loading spinner */
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid #0a0e18;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="login-container">
+  <div class="login-card">
+    <div class="logo-section">
+      <div class="logo-icon">
+        <svg viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg" width="30" height="30">
+          <path d="M 18 22 L 58 22 L 22 54 L 58 54" stroke="#0a0e18" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="62" cy="18" r="4" fill="#0a0e18"/>
+        </svg>
+      </div>
+      <div class="logo-title">Zexto Admin</div>
+      <div class="logo-sub">Control Panel</div>
+    </div>
+
+    <div class="error-msg" id="errorMsg">Invalid username or password</div>
+
+    <div class="form-group">
+      <label class="form-label" for="username">Username</label>
+      <input class="form-input" id="username" type="text" placeholder="Enter admin username" autocomplete="username" autofocus>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">Password</label>
+      <input class="form-input" id="password" type="password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+
+    <div class="footer">
+      Secured access only &middot; <span class="mono">v1.0.0</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Enter key triggers login
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('username').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('password').focus();
+  });
+
+  async function doLogin() {
+    const btn = document.getElementById('loginBtn');
+    const errEl = document.getElementById('errorMsg');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!username || !password) {
+      errEl.textContent = 'Please enter username and password';
+      errEl.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Signing in...';
+    errEl.classList.remove('show');
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (data.success && data.token) {
+        // Save token in cookie (24h expiry)
+        document.cookie = `admin_token=${data.token};path=/;max-age=86400;SameSite=Strict`;
+        // Redirect to dashboard
+        window.location.href = '/?admin_token=' + data.token;
+      } else {
+        errEl.textContent = data.message || 'Invalid credentials';
+        errEl.classList.add('show');
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+      }
+    } catch (e) {
+      errEl.textContent = 'Connection failed — is the server running?';
+      errEl.classList.add('show');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'Sign In';
+  }
+</script>
+</body>
+</html>

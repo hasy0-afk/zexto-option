@@ -1,0 +1,8 @@
+﻿* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0e17; overflow: hidden; }
+input:focus { border-color: #00ff9d !important; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0e17; }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2a3548; }
+select { appearance: none; }
